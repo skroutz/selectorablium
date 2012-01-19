@@ -1,0 +1,50 @@
+.selectorableium_cont {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  width: 100%;
+  z-index: 2;
+  display: block;
+  box-sizing: border-box; }
+  .selectorableium_cont .top {
+    border: 1px solid black;
+    box-sizing: border-box; }
+  .selectorableium_cont .inner_container {
+    display: none;
+    margin: 0px;
+    background-color: green;
+    border: 1px solid black;
+    position: relative;
+    box-sizing: border-box; }
+    .selectorableium_cont .inner_container form {
+      padding: 0px;
+      margin: 5px; }
+      .selectorableium_cont .inner_container form input {
+        width: 100%;
+        margin: 0px;
+        padding: 4px;
+        line-height: 18px;
+        height: 26px;
+        box-sizing: border-box; }
+    .selectorableium_cont .inner_container .list_container {
+      margin: 0px;
+      padding: 0px; }
+      .selectorableium_cont .inner_container .list_container li {
+        padding: 6px;
+        border-bottom: 1px solid orange; }
+      .selectorableium_cont .inner_container .list_container .item {
+        line-height: 18px;
+        padding-left: 10px;
+        color: black;
+        font-weight: bold;
+        display: block;
+        cursor: pointer; }
+        .selectorableium_cont .inner_container .list_container .item.active {
+          background-color: pink; }
+  .selectorableium_cont .clearfix {
+    zoom: 1; }
+    .selectorableium_cont .clearfix:after {
+      clear: both; }
+    .selectorableium_cont .clearfix:after, .selectorableium_cont .clearfix:before {
+      content: "";
+      display: table; }

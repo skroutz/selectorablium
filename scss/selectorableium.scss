@@ -1,0 +1,64 @@
+.selectorableium_cont{
+  position:absolute;
+  top:0px;
+  left:0px;
+  width:100%;
+  z-index:2;
+  display: block;
+  box-sizing: border-box;
+  .top{
+    border:1px solid black;
+    box-sizing: border-box;
+  }
+  .inner_container{
+    display:none;
+    margin:0px;
+    background-color: green;
+    border:1px solid black;
+    position:relative;
+    box-sizing: border-box;
+    form{
+      padding:0px;
+      margin:5px;
+      input{
+        width       : 100%;
+        margin      : 0px;
+        padding     : 4px;
+        line-height : 18px;      
+        height      : 18px + 8px;
+        box-sizing  : border-box;
+      }
+    }
+    .list_container{
+      margin:0px;
+      padding:0px;
+      li{
+        padding:6px;
+        border-bottom: 1px solid orange;
+      }
+      .item{
+        line-height:18px;
+        padding-left:10px;
+        color: black;
+        font-weight:bold;
+        display:block;
+        cursor: pointer;
+        &.active{
+          background-color: pink;
+        }
+      }
+    }
+  }
+  
+
+
+  .clearfix { 
+    zoom: 1; 
+    &:after{
+      clear: both;
+    }
+    &:after, &:before{
+      content: ""; display: table;
+    }
+  }
+}

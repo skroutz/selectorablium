@@ -1,0 +1,120 @@
+/* line 1, /home/basiloungas/projects/jscripts/app/assets/stylesheets/suggest_freak.css.scss */
+#suggest_freak_cont {
+  position: absolute;
+  display: none;
+  background-color: white;
+  -khtml-border-radius: 5px;
+  -ms-border-radius: 5px;
+  -o-border-radius: 5px;
+  -moz-border-radius: 5px;
+  -webkit-border-radius: 5px;
+  border-radius: 5px;
+  -khtml-box-shadow: rgba(0, 0, 0, 0.5) 0 4px 10px;
+  -ms-box-shadow: rgba(0, 0, 0, 0.5) 0 4px 10px;
+  -o-box-shadow: rgba(0, 0, 0, 0.5) 0 4px 10px;
+  -moz-box-shadow: rgba(0, 0, 0, 0.5) 0 4px 10px;
+  -webkit-box-shadow: rgba(0, 0, 0, 0.5) 0 4px 10px;
+  box-shadow: rgba(0, 0, 0, 0.5) 0 4px 10px;
+}
+/* line 17, /home/basiloungas/projects/jscripts/app/assets/stylesheets/suggest_freak.css.scss */
+#suggest_freak_cont .r_row {
+  border-bottom: 1px solid #DDD;
+  position: relative;
+}
+/* line 20, /home/basiloungas/projects/jscripts/app/assets/stylesheets/suggest_freak.css.scss */
+#suggest_freak_cont .r_row:last-child {
+  border-bottom: 0px none;
+}
+/* line 23, /home/basiloungas/projects/jscripts/app/assets/stylesheets/suggest_freak.css.scss */
+#suggest_freak_cont .r_row .r_label {
+  display: inline-block;
+  color: #888;
+  text-align: right;
+  width: 100px;
+  position: absolute;
+  left: 0px;
+  font-size: 10px;
+  text-transform: uppercase;
+  padding: 8px 10px 5px 0;
+  cursor: default;
+  line-height: 22px;
+}
+/* line 35, /home/basiloungas/projects/jscripts/app/assets/stylesheets/suggest_freak.css.scss */
+#suggest_freak_cont .r_row .r_results {
+  margin-left: 110px;
+  border-left: 1px solid #DDD;
+  padding: 5px 0;
+  min-height: 20px;
+}
+/* line 41, /home/basiloungas/projects/jscripts/app/assets/stylesheets/suggest_freak.css.scss */
+#suggest_freak_cont .r_row .r_results a {
+  display: block;
+  line-height: 25px;
+  padding: 0px 10px;
+  text-decoration: none;
+  color: #0069D6;
+  font-size:13px;
+}
+/* line 45, /home/basiloungas/projects/jscripts/app/assets/stylesheets/suggest_freak.css.scss */
+#suggest_freak_cont .r_row .r_results a.selected {
+  background: #346CAF;
+  background: -moz-linear-gradient(top, #3f73af 0, #32629b 100%);
+  background: -webkit-gradient(linear, 0 0, 0 100%, from(#3f73af), to(#32629b));
+  -ms-filter: "progid:DXImageTransform.Microsoft.gradient(startColorstr=#3f73af,endColorstr=#32629b)";
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr=#3f73af,endColorstr=#32629b);
+  -webkit-box-shadow: rgba(0, 0, 0, 0.3) 0 1px 2px;
+  -khtml-box-shadow: rgba(0, 0, 0, 0.3) 0 1px 2px;
+  -ms-box-shadow: rgba(0, 0, 0, 0.3) 0 1px 2px;
+  -o-box-shadow: rgba(0, 0, 0, 0.3) 0 1px 2px;
+  -moz-box-shadow: rgba(0, 0, 0, 0.3) 0 1px 2px;
+  box-shadow: rgba(0, 0, 0, 0.3) 0 1px 2px;
+  margin: 0 -3px 0 -3px;
+  padding: 0 13px 0 13px;
+  position: relative;
+  z-index: 1;
+  color: white;
+}
+/* line 62, /home/basiloungas/projects/jscripts/app/assets/stylesheets/suggest_freak.css.scss */
+#suggest_freak_cont .r_row .r_results a.selected .r_subtitle {
+  color: white;
+}
+/* line 66, /home/basiloungas/projects/jscripts/app/assets/stylesheets/suggest_freak.css.scss */
+#suggest_freak_cont .r_row .r_results a.selected .highlight {
+  border-bottom: 2px solid #FFF;
+}
+/* line 70, /home/basiloungas/projects/jscripts/app/assets/stylesheets/suggest_freak.css.scss */
+#suggest_freak_cont .r_row .r_results a:hover {
+  text-decoration: none;
+}
+/* line 72, /home/basiloungas/projects/jscripts/app/assets/stylesheets/suggest_freak.css.scss */
+#suggest_freak_cont .r_row .r_results a:hover .r_subtitle {
+  text-decoration: underline;
+}
+/* line 76, /home/basiloungas/projects/jscripts/app/assets/stylesheets/suggest_freak.css.scss */
+#suggest_freak_cont .r_row .r_results a:active {
+  top: 1px;
+}
+/* line 79, /home/basiloungas/projects/jscripts/app/assets/stylesheets/suggest_freak.css.scss */
+#suggest_freak_cont .r_row .r_results a .highlight {
+  border-bottom: 2px solid #888;
+}
+/* line 82, /home/basiloungas/projects/jscripts/app/assets/stylesheets/suggest_freak.css.scss */
+#suggest_freak_cont .r_row .r_results a .r_subtitle {
+  display: block;
+  color: #777;
+  font-size: 11px;
+}
+
+/* line 92, /home/basiloungas/projects/jscripts/app/assets/stylesheets/suggest_freak.css.scss */
+#search-spinner {
+  width: 16px;
+  height: 16px;
+  /*background-image: url("/assets/ajax-loader.gif");*/
+  background-repeat: no-repeat;
+  background-color: transparent;
+  background-position: top left;
+  position: absolute;
+  top: 13px;
+  right: 10px;
+  display: none;
+}
