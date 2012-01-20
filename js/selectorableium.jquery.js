@@ -4,7 +4,7 @@
     var Selectorableium, data_arr, defaults, pluginName;
     pluginName = "Selectorableium";
     defaults = {
-      minCharsForRemoteSearch: 1,
+      minCharsForRemoteSearch: 2,
       serviceUrl: "http://192.168.6.4:4000/suggest/proxy",
       initializationDataURL: "http://192.168.6.4:4000/suggest",
       caching_of_queries: false,
@@ -41,6 +41,7 @@
       this.data = null;
       this.result_list = null;
       this.selected_item = null;
+      this.items_list = null;
       this.init();
     };
     Selectorableium.prototype = {
@@ -63,7 +64,7 @@
         this.el_container.append('<div class="top"></div><div class="inner_container clearfix"><form><input name="var_name"></form><ul class="list_container"></ul></div>');
         this.el_top = this.el_container.find(".top").css('height', this.el.outerHeight(true));
         this.el_inner_container = this.el_container.find(".inner_container");
-        this.el_input = this.el_container.find("input");
+        this.el_input = this.el_container.find("input").attr("autocomplete", "off");
         this.el_list_cont = this.el_container.find(".list_container");
         this.el.parent().css('position', 'relative').append(this.el_container);
       },
@@ -72,24 +73,21 @@
           this.el_inner_container.slideToggle(200);
           this.el_input.focus();
         }, this));
+        this.el_container.on('click', function(e) {
+          return e.stopPropagation();
+        });
         $("html").on('click', __bind(function(e) {
-          if (e.target === this.el_top[0]) {
-            return false;
-          }
-          if (e.target === this.el_inner_container[0]) {
-            return false;
-          }
-          if (e.target === this.el_input[0]) {
-            return false;
-          }
-          if (e.target === this.el_list_cont[0]) {
-            return false;
-          }
-          if (this.el_inner_container.is(":hidden")) {
-            return false;
-          }
           this.hide();
         }, this));
+        if (window.opera || $.browser.mozilla) {
+          this.el_input.on('keypress', __bind(function(e) {
+            return this.onKeyPress(e);
+          }, this));
+        } else {
+          this.el_input.on('keydown', __bind(function(e) {
+            return this.onKeyPress(e);
+          }, this));
+        }
         this.el_input.on('keyup', __bind(function(e) {
           return this.onKeyUp(e);
         }, this));
@@ -98,27 +96,30 @@
         if (this.el_inner_container.is(":visible")) {
           this.el_inner_container.slideUp(200);
           this.el_input.val("");
+          this.el_list_cont.empty();
         }
       },
       onKeyPress: function(e) {
+        console.log("KeyPress:", e.keyCode);
         switch (e.keyCode) {
           case 27:
-            this.hide(true);
+            this.hide();
             break;
           case 38:
             this.moveSelectedElement("up");
             return false;
-          case 39:
-            return true;
           case 40:
             this.moveSelectedElement("down");
             return false;
-          case 8:
-            return true;
           case 13:
-            if (this.selected_suggest_item !== null && this.suggestions_container.is(":visible")) {
-              this.el.parents("form").attr("action", this.selected_suggest_item.attr("href"));
-            }
+            this.activateTheSelectedItem();
+            return false;
+            return true;
+          case 37:
+            return true;
+          case 39:
+            return true;
+          case 8:
             return true;
           default:
             return;
@@ -127,6 +128,7 @@
         e.preventDefault();
       },
       onKeyUp: function(e) {
+        console.log("KeyUp:", e.keyCode);
         switch (e.keyCode) {
           case 16:
           case 17:
@@ -135,6 +137,7 @@
           case 39:
           case 40:
           case 27:
+          case 13:
             return false;
         }
         this.query = this.el_input.val().trim();
@@ -168,39 +171,74 @@
         this.printSuggestionList(query);
       },
       printSuggestionList: function(cached_result) {
-        var fragment, item, li, me, span, _i, _len, _ref;
+        var a, fragment, item, li, me, _i, _len, _ref;
         this.el_list_cont.empty();
         fragment = document.createDocumentFragment();
         _ref = this.result_list;
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           item = _ref[_i];
           li = document.createElement("li");
-          span = document.createElement("span");
-          span.className = "item";
-          span.setAttribute("data-value", item.id);
-          span.appendChild(document.createTextNode(item.name));
-          li.appendChild(span);
+          a = document.createElement("a");
+          a.className = "item";
+          a.setAttribute("data-value", item.id);
+          a.setAttribute("href", "#");
+          a.appendChild(document.createTextNode(item.name));
+          li.appendChild(a);
           fragment.appendChild(li);
         }
         this.el_list_cont.append(fragment);
         this.el_list_cont[0].innerHTML += '';
-        this.el_list_cont.find(".item").on('hover', function() {
-          return $(this).add;
-        });
+        this.items_list = this.el_list_cont.find(".item");
         me = this;
-        this.el_list_cont.find(".item").on('mouseenter', {
+        this.items_list.on('mouseenter', {
           me: me
         }, function() {
-          return me.userSelectedThisItem($(this));
+          return me.selectThisItem($(this));
         });
+        this.items_list.on('click', {
+          me: me
+        }, function() {
+          console.log(me, "here");
+          return me.activateTheSelectedItem();
+        });
+        this.selected_item = this.el_list_cont.find(".item:first").addClass("selected");
         this.highlightTextAndItem();
       },
-      userSelectedThisItem: function(element) {
+      highlightTextAndItem: function() {
+        if (this.query !== "") {
+          this.items_list.each(__bind(function(index, element) {
+            var item_name, regEXP;
+            item_name = $(element).html();
+            if (this.query !== "") {
+              regEXP = new RegExp("(" + this.query + ")", "ig");
+              item_name = item_name.replace(regEXP, "<span class='highlight'>$1</span>");
+            }
+            $(element).html(item_name);
+          }, this));
+        }
+      },
+      activateTheSelectedItem: function() {
+        this.el.html('<option value="' + this.selected_item.data("value") + '">' + this.selected_item.text() + '</option>');
+        this.hide();
+      },
+      selectThisItem: function(element) {
         if (this.selected_item !== null) {
-          this.selected_item.removeClass("active");
+          this.selected_item.removeClass("selected");
           this.selected_item = null;
         }
-        this.selected_item = element.addClass("active");
+        this.selected_item = element.addClass("selected");
+      },
+      moveSelectedElement: function(direction) {
+        var count, custom_index, index;
+        count = this.items_list.length;
+        index = this.items_list.index(this.selected_item) + count;
+        if (direction === "up") {
+          custom_index = index - 1;
+        } else if (direction === "down") {
+          custom_index = index + 1;
+        }
+        index = custom_index % count;
+        this.selectThisItem(this.items_list.filter(".item:nth(" + index + ")"));
       },
       updateLocalDB: function(response_data) {
         var index, items, manufacturer, my_regexp, new_categories_list, new_list, new_manufacturer_list, old_list, product_list, product_manufacturer, responce_item, updated_manufacturer_list;
@@ -389,49 +427,6 @@
                 result_list = result_list.concat books_list
               */
         return result_list;
-      },
-      highlightTextAndItem: function() {
-        $(".entry").each(__bind(function(index, element) {
-          var indexOfWord, indexOfWordRegEx, item_name, my_re_no_space, my_re_space, word, _len, _ref;
-          item_name = $(element).html();
-          _ref = this.queryWords;
-          for (index = 0, _len = _ref.length; index < _len; index++) {
-            word = _ref[index];
-            if (word !== "") {
-              indexOfWordRegEx = new RegExp("(^" + word + ")|([ ]" + word + ")", "i");
-              indexOfWord = item_name.search(indexOfWordRegEx);
-              if (indexOfWord === 0) {
-                my_re_no_space = new RegExp("(^" + word + ")", "i");
-                item_name = item_name.replace(my_re_no_space, "<span class='highlight'>$&</span>");
-              } else if (indexOfWord > 0) {
-                my_re_space = new RegExp("([ ]" + word + ")", "i");
-                item_name = item_name.replace(my_re_space, " <span class='highlight'>$&</span>");
-              }
-            }
-          }
-          $(element).html(item_name);
-        }, this));
-      },
-      moveSelectedElement: function(direction) {
-        var count, index;
-        count = $(".entry").length;
-        index = $(".entry").index(this.selected_suggest_item) + count;
-        if (direction === "up") {
-          if (this.selected_suggest_item === null) {
-            this.userSelectedThisItem($(".entry:last"));
-            return;
-          } else {
-            index = (index - 1) % count;
-          }
-        } else if (direction === "down") {
-          if (this.selected_suggest_item === null) {
-            this.userSelectedThisItem($(".entry:first"));
-            return;
-          } else {
-            index = (index + 1) % count;
-          }
-        }
-        this.userSelectedThisItem($("a.entry:nth(" + index + ")"));
       },
       fix_container_location: function() {
         var elOuterHeight, minWidth, offset;
@@ -869,6 +864,102 @@
       }, {
         "name": "Bestar",
         "id": 1060
+      }, {
+        "name": "Zupermarket",
+        "id": 714
+      }, {
+        "name": "\u0391\u03c0\u03bf\u03c3\u03c4\u03bf\u03bb\u03cc\u03c0\u03bf\u03c5\u03bb\u03bf\u03c2",
+        "id": 508
+      }, {
+        "name": "\u0391\u03c1\u03b9\u03c3\u03c4\u03b5\u03c1\u03cc\u03c7\u03b5\u03b9\u03c1\u03b1\u03c2",
+        "id": 586
+      }, {
+        "name": "\u0391\u03c6\u03bf\u03b9 \u0393\u03b5\u03c9\u03c1\u03b3\u03af\u03bf\u03c5",
+        "id": 777
+      }, {
+        "name": "\u0392\u03b1\u03c3\u03b9\u03bb\u03b5\u03af\u03bf\u03c5 \u0397\u03bb\u03b5\u03ba\u03c4\u03c1\u03b1\u03b3\u03bf\u03c1\u03ac",
+        "id": 1286
+      }, {
+        "name": "\u0393\u03c1\u03b1\u03bc\u03bc\u03ae",
+        "id": 64
+      }, {
+        "name": "\u0393\u03c1\u03b7\u03b3\u03bf\u03c1\u03b9\u03ac\u03b4\u03b7\u03c2",
+        "id": 609
+      }, {
+        "name": "\u0394\u03b5\u03c1\u03bc\u03ac\u03c4\u03b9\u03bd\u03b1 100",
+        "id": 717
+      }, {
+        "name": "\u0394\u03b9\u03ac\u03c0\u03bb\u03bf\u03c5\u03c2",
+        "id": 636
+      }, {
+        "name": "\u0394\u03af\u03ba\u03c5\u03ba\u03bb\u03bf",
+        "id": 537
+      }, {
+        "name": "\u0388\u03bd\u03c4\u03b5\u03c7\u03bd\u03bf",
+        "id": 591
+      }, {
+        "name": "\u0395\u03c5\u03c3\u03c4\u03b1\u03b8\u03af\u03bf\u03c5",
+        "id": 545
+      }, {
+        "name": "\u0397\u03bb\u03b5\u03ba\u03c4\u03c1\u03bf\u03bd\u03b9\u03ba\u03ac \u0391\u03bd\u03c4\u03c9\u03bd\u03afo\u03c5",
+        "id": 635
+      }, {
+        "name": "\u0397\u03bb\u03b5\u03ba\u03c4\u03c1\u03bf\u03bd\u03b9\u03ba\u03ae",
+        "id": 681
+      }, {
+        "name": "\u0397\u03c7\u03bf\u03ad\u03ba\u03c6\u03c1\u03b1\u03c3\u03b7",
+        "id": 379
+      }, {
+        "name": "\u0397\u03c7\u03bf\u03ba\u03af\u03bd\u03b7\u03c3\u03b7",
+        "id": 1247
+      }, {
+        "name": "\u0389\u03c7\u03bf\u03c2 \u0395\u03b9\u03ba\u03cc\u03bd\u03b1",
+        "id": 469
+      }, {
+        "name": "\u039a\u03b5\u03c7\u03c1\u03b9\u03bc\u03c0\u03ac\u03c1\u03b9",
+        "id": 581
+      }, {
+        "name": "\u039a\u03bf\u03c5\u03ba\u03bf\u03c5",
+        "id": 865
+      }, {
+        "name": "\u039a\u03c9\u03c3\u03c4\u03af\u03ba\u03b1 \u039c\u03ac\u03c1\u03ba\u03b5\u03c4",
+        "id": 664
+      }, {
+        "name": "\u039b\u03b7\u03bc\u03bd\u03b1\u03af\u03bf\u03c2",
+        "id": 476
+      }, {
+        "name": "\u039b\u03b7\u03c4\u03ce",
+        "id": 314
+      }, {
+        "name": "\u039f\u03c0\u03c4\u03b9\u03ba\u03ac \u0391\u03b2\u03c1\u03ac\u03bc\u03b7\u03c2",
+        "id": 1061
+      }, {
+        "name": "\u039f\u03c1\u03b8\u03bf\u03c0\u03b5\u03b4\u03b9\u03ba\u03cc\u03c2 \u039a\u03cc\u03c3\u03bc\u03bf\u03c2 \u039a\u03c5\u03c6\u03af\u03b4\u03b7\u03c2",
+        "id": 749
+      }, {
+        "name": "\u03a0\u03bb\u03b1\u03af\u03c3\u03b9\u03bf",
+        "id": 11
+      }, {
+        "name": "\u03a1\u03b5\u03c0\u03ad\u03bb\u03bb\u03b1",
+        "id": 522
+      }, {
+        "name": "\u03a3\u03b2\u03bf\u03cd\u03c1\u03b1",
+        "id": 455
+      }, {
+        "name": "\u03a4\u03c3\u03ad\u03bb\u03b9\u03bf\u03c2",
+        "id": 332
+      }, {
+        "name": "\u03a6\u03c5\u03c4\u03ce\u03c1\u03b9\u03b1 \u0391\u03bd\u03c4\u03b5\u03bc\u03b9\u03c3\u03ac\u03c1\u03b7",
+        "id": 1039
+      }, {
+        "name": "\u03a7\u03b1\u03bc\u03cc\u03b3\u03b5\u03bb\u03bf \u03c4\u03bf\u03c5 \u03a0\u03b1\u03b9\u03b4\u03b9\u03bf\u03cd",
+        "id": 667
+      }, {
+        "name": "\u03a7\u03c1\u03ce\u03bc\u03b1\u03c4\u03b1",
+        "id": 1096
+      }, {
+        "name": "\u03a9\u03b4\u03ad\u03c2",
+        "id": 457
       }
     ];
   })(jQuery, window, document);

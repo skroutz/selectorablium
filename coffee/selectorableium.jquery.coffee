@@ -2,7 +2,7 @@
   ##PRIVATE PROPERTIES
   pluginName = "Selectorableium"
   defaults   =
-    minCharsForRemoteSearch    : 1
+    minCharsForRemoteSearch    : 2
     serviceUrl                 : "http://192.168.6.4:4000/suggest/proxy"
     initializationDataURL      : "http://192.168.6.4:4000/suggest"
     caching_of_queries         : false
@@ -46,6 +46,7 @@
     @data               = null
     @result_list        = null
     @selected_item      = null
+    @items_list         = null
     #
       # @suggestions_container = ""
       # @last_invalid_query = null
@@ -104,10 +105,9 @@
       
       @el_container.append('<div class="top"></div><div class="inner_container clearfix"><form><input name="var_name"></form><ul class="list_container"></ul></div>')
       
-      
       @el_top             = @el_container.find(".top").css 'height', @el.outerHeight(true)
       @el_inner_container = @el_container.find(".inner_container")
-      @el_input           = @el_container.find("input")
+      @el_input           = @el_container.find("input").attr("autocomplete", "off")
       @el_list_cont       = @el_container.find(".list_container")
 
       @el.parent().css('position','relative').append @el_container
@@ -120,21 +120,20 @@
 
         return
       
+      @el_container.on 'click', (e)->
+        e.stopPropagation()
+        # return false
+      
       $("html").on 'click', (e)=>
-        return false if e.target is @el_top[0]
-        return false if e.target is @el_inner_container[0]
-        return false if e.target is @el_input[0]
-        return false if e.target is @el_list_cont[0]
-        return false if @el_inner_container.is(":hidden")
         @hide()
         return
 
-      # if window.opera or $.browser.mozilla
-      #   @el_input.on 'keypress', (e) =>
-      #     @onKeyPress e
-      # else
-      #   @el_input.on 'keydown', (e) =>
-      #     @onKeyPress e
+      if window.opera or $.browser.mozilla
+        @el_input.on 'keypress', (e) =>
+          @onKeyPress e
+      else
+        @el_input.on 'keydown', (e) =>
+          @onKeyPress e
       
       @el_input.on 'keyup', (e) =>
         @onKeyUp e
@@ -145,28 +144,31 @@
       if @el_inner_container.is(":visible")
         @el_inner_container.slideUp(200)
         @el_input.val("")
-
+        @el_list_cont.empty()
       return
 
     onKeyPress: (e) ->
+      console.log "KeyPress:", e.keyCode
       switch e.keyCode
         when 27 #esc
-          @hide(true)
+          @hide()
         when 38 #up
           @moveSelectedElement("up")
           return false
-        when 39 #right
-          # @moveSelectedElement("right")
-          # return false
-          return true
         when 40 #down
           @moveSelectedElement("down")
           return false
-        when 8 #backspace
-          return true
         when 13 #enter
-          if @selected_suggest_item isnt null and @suggestions_container.is(":visible")
-            @el.parents("form").attr( "action", @selected_suggest_item.attr("href") )
+          @activateTheSelectedItem()
+          return false
+          # if @selected_suggest_item isnt null and @suggestions_container.is(":visible")
+          #   @el.parents("form").attr( "action", @selected_suggest_item.attr("href") )
+          return true
+        when 37 #left
+          return true
+        when 39 #right
+          return true
+        when 8 #backspace
           return true
         else
           return
@@ -176,9 +178,10 @@
       return
     
     onKeyUp: (e) ->
+      console.log "KeyUp:", e.keyCode
       switch e.keyCode
-        #KEYS SHIFT, CTRL, LEFT, UP, RIGHT, DOWN, ESC
-        when 16, 17, 37, 38, 39, 40, 27
+        #KEYS SHIFT, CTRL, LEFT, UP, RIGHT, DOWN, ESC, ENTER
+        when 16, 17, 37, 38, 39, 40, 27, 13
           return false
       
       @query = @el_input.val().trim()
@@ -224,42 +227,80 @@
       return
     
     printSuggestionList: (cached_result) ->
-      # return if @hidden
       @el_list_cont.empty()
 
       fragment = document.createDocumentFragment()
       for item in @result_list
         li = document.createElement "li"
-        span = document.createElement "span"
-        span.className = "item"
-        span.setAttribute "data-value", item.id
-        span.appendChild document.createTextNode item.name
-        li.appendChild span
+        a = document.createElement "a"
+        a.className = "item"
+        a.setAttribute "data-value", item.id
+        a.setAttribute "href", "#"
+        a.appendChild document.createTextNode item.name
+        li.appendChild a
         fragment.appendChild li
-      # console.log fragment
       @el_list_cont.append fragment
       @el_list_cont[0].innerHTML += ''
-      @el_list_cont.find(".item").on 'hover', ->
-        $(this).add
       
+      @items_list = @el_list_cont.find(".item")
+
       me = this
-      @el_list_cont.find(".item").on 'mouseenter', {me}, ->
-        me.userSelectedThisItem $(this)
+      @items_list.on 'mouseenter', {me}, ->
+        me.selectThisItem $(this)
+      @items_list.on 'click', {me}, ->
+        console.log me, "here"
+        me.activateTheSelectedItem()
       
-      # if @options.select_first_entry
-      #   @selected_suggest_item = $("a.entry:first").addClass("selected")
+      @selected_item = @el_list_cont.find(".item:first").addClass("selected")
       
       @highlightTextAndItem()
       return 
 
-    userSelectedThisItem: (element) ->
+    highlightTextAndItem: () ->
+      if @query isnt ""
+        @items_list.each (index, element) => 
+          item_name = $(element).html()
+          if @query isnt ""
+            regEXP = new RegExp "(" + @query + ")", "ig"
+            item_name = item_name.replace(regEXP, "<span class='highlight'>$1</span>")
+          $(element).html(item_name)
+          return
+        
+      return
+    
+    activateTheSelectedItem: () ->
+      @el.html('<option value="' + @selected_item.data("value") + '">' + @selected_item.text() + '</option>')
+      @hide()
+      return
+
+    selectThisItem: (element) ->
       if @selected_item isnt null
-        @selected_item.removeClass("active")
+        @selected_item.removeClass("selected")
         @selected_item = null
       
-      @selected_item = element.addClass("active")
+      @selected_item = element.addClass("selected")
       return 
     
+    moveSelectedElement: (direction) ->
+      count = @items_list.length
+      index = @items_list.index(@selected_item) + count
+      
+      if direction is "up"
+        custom_index = index - 1
+      else if direction is "down"
+        custom_index = index + 1
+      index = custom_index % count
+
+      @selectThisItem @items_list.filter(".item:nth(" + index + ")")
+      return
+
+    
+    
+
+
+
+
+
 
 
     updateLocalDB: (response_data) ->
@@ -466,46 +507,8 @@
       
       return result_list
     
-    highlightTextAndItem: () ->
-      $(".entry").each (index, element) => 
-        item_name = $(element).html()
-        for word, index in @queryWords
-          if word isnt ""
-            indexOfWordRegEx = new RegExp "(^" + word + ")|([ ]" + word + ")", "i"
-            indexOfWord = item_name.search indexOfWordRegEx
-            if indexOfWord is 0
-              my_re_no_space = new RegExp("(^" + word + ")","i")
-              item_name = item_name.replace(my_re_no_space, "<span class='highlight'>$&</span>")
-            else if indexOfWord > 0
-              my_re_space = new RegExp("([ ]" + word + ")","i")
-              item_name =  item_name.replace(my_re_space, " <span class='highlight'>$&</span>")
-        $(element).html(item_name)
-        return
-      return
-
-    moveSelectedElement: (direction) ->
-      count = $(".entry").length
-      index = $(".entry").index(@selected_suggest_item) + count
-
-      if direction is "up"
-        if @selected_suggest_item is null
-          @userSelectedThisItem $(".entry:last")
-          return
-        else
-          index = (index - 1) % count
-      else if direction is "down" #or direction is "right"
-        if @selected_suggest_item is null
-          @userSelectedThisItem $(".entry:first")
-          return
-        else
-          index = (index + 1) % count
-      
-      @userSelectedThisItem $("a.entry:nth(" + index + ")")
-      return
-    
     #element should be a jquery selected element
     
-
     fix_container_location: ->
       offset        = @el.offset()
       elOuterHeight = @el.outerHeight()
@@ -516,9 +519,6 @@
         top: (offset.top + elOuterHeight) + "px"
         left: offset.left + "px"
         minWidth: minWidth
-      
-    
-
 
     cleanQuery: (query) ->
       return false if typeof query isnt "string"
@@ -967,6 +967,102 @@
     }, {
       "name": "Bestar",
       "id": 1060
+    }, {
+      "name": "Zupermarket",
+      "id": 714
+    }, {
+      "name": "\u0391\u03c0\u03bf\u03c3\u03c4\u03bf\u03bb\u03cc\u03c0\u03bf\u03c5\u03bb\u03bf\u03c2",
+      "id": 508
+    }, {
+      "name": "\u0391\u03c1\u03b9\u03c3\u03c4\u03b5\u03c1\u03cc\u03c7\u03b5\u03b9\u03c1\u03b1\u03c2",
+      "id": 586
+    }, {
+      "name": "\u0391\u03c6\u03bf\u03b9 \u0393\u03b5\u03c9\u03c1\u03b3\u03af\u03bf\u03c5",
+      "id": 777
+    }, {
+      "name": "\u0392\u03b1\u03c3\u03b9\u03bb\u03b5\u03af\u03bf\u03c5 \u0397\u03bb\u03b5\u03ba\u03c4\u03c1\u03b1\u03b3\u03bf\u03c1\u03ac",
+      "id": 1286
+    }, {
+      "name": "\u0393\u03c1\u03b1\u03bc\u03bc\u03ae",
+      "id": 64
+    }, {
+      "name": "\u0393\u03c1\u03b7\u03b3\u03bf\u03c1\u03b9\u03ac\u03b4\u03b7\u03c2",
+      "id": 609
+    }, {
+      "name": "\u0394\u03b5\u03c1\u03bc\u03ac\u03c4\u03b9\u03bd\u03b1 100",
+      "id": 717
+    }, {
+      "name": "\u0394\u03b9\u03ac\u03c0\u03bb\u03bf\u03c5\u03c2",
+      "id": 636
+    }, {
+      "name": "\u0394\u03af\u03ba\u03c5\u03ba\u03bb\u03bf",
+      "id": 537
+    }, {
+      "name": "\u0388\u03bd\u03c4\u03b5\u03c7\u03bd\u03bf",
+      "id": 591
+    }, {
+      "name": "\u0395\u03c5\u03c3\u03c4\u03b1\u03b8\u03af\u03bf\u03c5",
+      "id": 545
+    }, {
+      "name": "\u0397\u03bb\u03b5\u03ba\u03c4\u03c1\u03bf\u03bd\u03b9\u03ba\u03ac \u0391\u03bd\u03c4\u03c9\u03bd\u03afo\u03c5",
+      "id": 635
+    }, {
+      "name": "\u0397\u03bb\u03b5\u03ba\u03c4\u03c1\u03bf\u03bd\u03b9\u03ba\u03ae",
+      "id": 681
+    }, {
+      "name": "\u0397\u03c7\u03bf\u03ad\u03ba\u03c6\u03c1\u03b1\u03c3\u03b7",
+      "id": 379
+    }, {
+      "name": "\u0397\u03c7\u03bf\u03ba\u03af\u03bd\u03b7\u03c3\u03b7",
+      "id": 1247
+    }, {
+      "name": "\u0389\u03c7\u03bf\u03c2 \u0395\u03b9\u03ba\u03cc\u03bd\u03b1",
+      "id": 469
+    }, {
+      "name": "\u039a\u03b5\u03c7\u03c1\u03b9\u03bc\u03c0\u03ac\u03c1\u03b9",
+      "id": 581
+    }, {
+      "name": "\u039a\u03bf\u03c5\u03ba\u03bf\u03c5",
+      "id": 865
+    }, {
+      "name": "\u039a\u03c9\u03c3\u03c4\u03af\u03ba\u03b1 \u039c\u03ac\u03c1\u03ba\u03b5\u03c4",
+      "id": 664
+    }, {
+      "name": "\u039b\u03b7\u03bc\u03bd\u03b1\u03af\u03bf\u03c2",
+      "id": 476
+    }, {
+      "name": "\u039b\u03b7\u03c4\u03ce",
+      "id": 314
+    }, {
+      "name": "\u039f\u03c0\u03c4\u03b9\u03ba\u03ac \u0391\u03b2\u03c1\u03ac\u03bc\u03b7\u03c2",
+      "id": 1061
+    }, {
+      "name": "\u039f\u03c1\u03b8\u03bf\u03c0\u03b5\u03b4\u03b9\u03ba\u03cc\u03c2 \u039a\u03cc\u03c3\u03bc\u03bf\u03c2 \u039a\u03c5\u03c6\u03af\u03b4\u03b7\u03c2",
+      "id": 749
+    }, {
+      "name": "\u03a0\u03bb\u03b1\u03af\u03c3\u03b9\u03bf",
+      "id": 11
+    }, {
+      "name": "\u03a1\u03b5\u03c0\u03ad\u03bb\u03bb\u03b1",
+      "id": 522
+    }, {
+      "name": "\u03a3\u03b2\u03bf\u03cd\u03c1\u03b1",
+      "id": 455
+    }, {
+      "name": "\u03a4\u03c3\u03ad\u03bb\u03b9\u03bf\u03c2",
+      "id": 332
+    }, {
+      "name": "\u03a6\u03c5\u03c4\u03ce\u03c1\u03b9\u03b1 \u0391\u03bd\u03c4\u03b5\u03bc\u03b9\u03c3\u03ac\u03c1\u03b7",
+      "id": 1039
+    }, {
+      "name": "\u03a7\u03b1\u03bc\u03cc\u03b3\u03b5\u03bb\u03bf \u03c4\u03bf\u03c5 \u03a0\u03b1\u03b9\u03b4\u03b9\u03bf\u03cd",
+      "id": 667
+    }, {
+      "name": "\u03a7\u03c1\u03ce\u03bc\u03b1\u03c4\u03b1",
+      "id": 1096
+    }, {
+      "name": "\u03a9\u03b4\u03ad\u03c2",
+      "id": 457
     }
   ] 
 

@@ -30,7 +30,7 @@
     ?>
     <form id="test_stuff" target="" action="" method="get">
       <div id="input_cont">
-        <select class="selectorableium" name="chosen">
+        <select class="selectorableium" name="eshop_id">
           <option value="-1" selected>Διάλεξε κατασκευαστή</option>
         </select>
       </div>

@@ -33,18 +33,24 @@
       margin:0px;
       padding:0px;
       li{
-        padding:6px;
         border-bottom: 1px solid orange;
       }
       .item{
+        padding:6px 6px 6px 15px;
         line-height:18px;
-        padding-left:10px;
         color: black;
         font-weight:bold;
         display:block;
         cursor: pointer;
-        &.active{
+        &:hover{
+          text-decoration: none;
+        }
+        &.selected{
           background-color: pink;
+        }
+        .highlight{
+          text-decoration: underline;
+          color:white;
         }
       }
     }
