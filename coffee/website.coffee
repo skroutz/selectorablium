@@ -44,7 +44,7 @@ $(->
 
   $("select.selectorableium").Selectorableium
     instance_name: "selectorableium_dev"
-    data_name: "eshops"
+    data_name: "shops"
   
   window.a = $("select.selectorableium").data("Selectorableium")
   return

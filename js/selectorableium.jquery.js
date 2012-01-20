@@ -5,13 +5,9 @@
     pluginName = "Selectorableium";
     defaults = {
       minCharsForRemoteSearch: 2,
-      serviceUrl: "http://192.168.6.4:4000/suggest/proxy",
-      initializationDataURL: "http://192.168.6.4:4000/suggest",
-      caching_of_queries: false,
-      queryCacheTimeout: 2 * 60 * 60 * 1000,
+      baseUrl: "/earth/",
       localCacheTimeout: 7 * 24 * 60 * 60 * 1000,
       XHRTimeout: 1200,
-      select_first_entry: true,
       maxResultsNum: 10
     };
     Selectorableium = function(element, options) {
@@ -70,7 +66,11 @@
       },
       registerEventHandlers: function() {
         this.el_top.on('click', __bind(function(e) {
-          this.el_inner_container.slideToggle(200);
+          if (this.el_inner_container.is(":visible")) {
+            this.hide();
+          } else {
+            this.el_inner_container.slideDown(200);
+          }
           this.el_input.focus();
         }, this));
         this.el_container.on('click', function(e) {
@@ -220,6 +220,7 @@
       activateTheSelectedItem: function() {
         this.el.html('<option value="' + this.selected_item.data("value") + '">' + this.selected_item.text() + '</option>');
         this.hide();
+        return false;
       },
       selectThisItem: function(element) {
         if (this.selected_item !== null) {
@@ -494,7 +495,7 @@
       try {
         return $.fn.storagefreak();
       } catch (e) {
-        this.error_func(this.name, "could not get StorageFreak object");
+        this.__error('getLocalDBObj', "could not get StorageFreak object");
         return null;
       }
     };
@@ -506,8 +507,22 @@
         this.local_db_timestamp = parseInt(this.local_db_timestamp, 10);
       }
       if (this.local_db_timestamp === false || (current_timestamp - this.local_db_timestamp) > this.options.localCacheTimeout) {
-        this.__dbSet("timestamp", new Date().getTime());
-        this.__dbSet(this.options.data_name + "_data", data_arr);
+        console.log(this.options.baseUrl + this.options.data_name + ".json?query=testa");
+        $.ajax({
+          url: this.options.baseUrl + this.options.data_name + ".json?query=testa",
+          type: "get",
+          dataType: "json",
+          success: __bind(function(a, b, c) {
+            console.log("success", a, b, c);
+          }, this),
+          error: __bind(function(a, b, c) {
+            console.log("error", a, b, c);
+          }, this),
+          complete: __bind(function(XHRobj, status) {
+            console.log("complete", XHRobj, status);
+            window.c = XHRobj;
+          }, this)
+        });
       }
       this.data = this.__dbGet(this.options.data_name + "_data");
     };

@@ -3,13 +3,10 @@
   pluginName = "Selectorableium"
   defaults   =
     minCharsForRemoteSearch    : 2
-    serviceUrl                 : "http://192.168.6.4:4000/suggest/proxy"
-    initializationDataURL      : "http://192.168.6.4:4000/suggest"
-    caching_of_queries         : false
-    queryCacheTimeout          : 2 * 60 * 60 * 1000 #milliseconds #2hours
+    baseUrl                    : "/earth/"
+    # http://192.168.6.56:3002/earth/shops.json?query=pla
     localCacheTimeout          : 7 * 24 * 60 * 60 * 1000 #milliseconds #one week
     XHRTimeout                 : 1200 #milliseconds
-    select_first_entry         : true
     maxResultsNum              : 10
   
   Selectorableium = (element, options) ->
@@ -115,7 +112,11 @@
 
     registerEventHandlers: ->
       @el_top.on 'click', (e) =>
-        @el_inner_container.slideToggle(200)
+        if @el_inner_container.is(":visible")
+          @hide()
+        else
+          @el_inner_container.slideDown(200)
+        
         @el_input.focus()
 
         return
@@ -271,7 +272,7 @@
     activateTheSelectedItem: () ->
       @el.html('<option value="' + @selected_item.data("value") + '">' + @selected_item.text() + '</option>')
       @hide()
-      return
+      return false
 
     selectThisItem: (element) ->
       if @selected_item isnt null
@@ -583,7 +584,7 @@
     try
       return $.fn.storagefreak()
     catch e
-      @error_func @name, "could not get StorageFreak object"
+      @__error 'getLocalDBObj', "could not get StorageFreak object"
       return null
 
   Selectorableium.initiateLocalData = () ->
@@ -594,13 +595,44 @@
       @local_db_timestamp = parseInt @local_db_timestamp, 10
     
     if @local_db_timestamp is false or (current_timestamp - @local_db_timestamp) > @options.localCacheTimeout
-      @__dbSet "timestamp", new Date().getTime()
-      @__dbSet @options.data_name + "_data", data_arr
+      # @__dbSet "timestamp", new Date().getTime()
+      # @__dbSet @options.data_name + "_data", data_arr
       # try
-      #   $.getJSON @options.initial_dump_url, (json) => 
-      #     @__dbSet @options.data_name + "_data", data_arr
+        console.log @options.baseUrl + @options.data_name + ".json?query=testa"
+        $.ajax
+          url: @options.baseUrl + @options.data_name + ".json?query=testa"
+          type: "get"
+          dataType: "json"
+          # dataFilter: (data, type)->
+          #   console.log "datafilter", data, type
+          #   return
+          # xhrFields:
+          #   withCredentials: true
+          # converters: 
+          #   "* text": JSON.parse
+          #   "text html": true
+          #   "text script": JSON.parse
+          #   "text json": JSON.parse
+          #   "text jsonp": JSON.parse
+          #   "application json": JSON.parse
+          #   "application jsonp": JSON.parse
+          #   "text xml": jQuery.parseXML
+
+          success: (a,b,c)=>
+            console.log "success", a,b,c
+            return
+          error: (a,b,c)=>
+            console.log "error", a,b,c
+            return
+          complete: (XHRobj,status)=>
+            console.log "complete", XHRobj,status
+            window.c = XHRobj
+            return          
+        # $.getJSON @options.baseUrl, (json) => 
+        #   console.log json
+        #   @__dbSet @options.data_name + "_data", data_arr
       # catch e
-      #   console.log "initiateLocalData error: " + e
+      #   @__error 'getLocalDBObj', "could not get StorageFreak object"
       #   return false
     
     @data = @__dbGet @options.data_name + "_data"
