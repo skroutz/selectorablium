@@ -17,8 +17,9 @@
     position: relative;
     box-sizing: border-box; }
     .selectorableium_cont .inner_container form {
-      padding: 0px;
-      margin: 5px; }
+      padding: 0px 0 3px 0;
+      margin: 5px;
+      position: relative; }
       .selectorableium_cont .inner_container form input {
         width: 100%;
         margin: 0px;
@@ -26,6 +27,23 @@
         line-height: 18px;
         height: 26px;
         box-sizing: border-box; }
+      .selectorableium_cont .inner_container form .loader {
+        background: transparent url("../images/ajax-loader.gif") no-repeat top left;
+        width: 16px;
+        height: 16px;
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        z-index: 1;
+        display: none; }
+      .selectorableium_cont .inner_container form .XHRCounter {
+        height: 3px;
+        position: absolute;
+        bottom: 0px;
+        left: 0px;
+        width: 0px;
+        background-color: black;
+        z-index: 1; }
     .selectorableium_cont .inner_container .list_container {
       margin: 0px;
       padding: 0px; }
@@ -37,7 +55,8 @@
         color: black;
         font-weight: bold;
         display: block;
-        cursor: pointer; }
+        cursor: pointer;
+        overflow: hidden; }
         .selectorableium_cont .inner_container .list_container .item:hover {
           text-decoration: none; }
         .selectorableium_cont .inner_container .list_container .item.selected {
