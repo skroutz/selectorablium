@@ -1,28 +1,3 @@
-window.my_function = (event, context, callback)->
-  # $.ajax
-  #   url: "http://192.168.6.56:3002/earth/shops.json"
-  #   type: "get"
-  #   dataType: "jsonp"
-  
-  callback.call context, event
-  return
-
-initiateLocalData = () ->
-  current_timestamp = new Date().getTime()
-  local_db_timestamp = db.get("skroutz_cache_timer:chosen")
-
-  if local_db_timestamp isnt false
-    local_db_timestamp = parseInt local_db_timestamp, 10
-  
-  ttl_cache = 60 * 60 * 1000 ## 2 hours
-  
-  if local_db_timestamp is false or (current_timestamp - local_db_timestamp) > ttl_cache
-    db.set "skroutz_cache_timer:chosen", new Date().getTime();
-    db.set "chosen_data", data_arr
-
-  return true
-
-
 ##
 ##ONDOMREADY START
 $(->
@@ -43,7 +18,7 @@ $(->
     $("select").trigger("liszt:updated");
 
   $("select.selectorableium").Selectorableium
-    app_name      : "selectorableium_deva"
+    app_name      : "selectorableium_dev"
   
   window.a = $("select.selectorableium").data("Selectorableium")
   return

@@ -2,9 +2,9 @@
   ##PRIVATE PROPERTIES
   pluginName = "Selectorableium"
   defaults   =
-    minCharsForRemoteSearch    : 1
+    minCharsForRemoteSearch    : 3
     localCacheTimeout          : 7 * 24 * 60 * 60 * 1000 #milliseconds #one week
-    XHRTimeout                 : 1200 #milliseconds
+    XHRTimeout                 : 650 #milliseconds
     maxResultsNum              : 10
     maxNewResultsNum           : 5
   

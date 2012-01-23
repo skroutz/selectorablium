@@ -4,9 +4,9 @@
     var Selectorableium, defaults, pluginName;
     pluginName = "Selectorableium";
     defaults = {
-      minCharsForRemoteSearch: 1,
+      minCharsForRemoteSearch: 3,
       localCacheTimeout: 7 * 24 * 60 * 60 * 1000,
-      XHRTimeout: 1200,
+      XHRTimeout: 650,
       maxResultsNum: 10,
       maxNewResultsNum: 5
     };

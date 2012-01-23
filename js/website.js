@@ -1,22 +1,5 @@
 (function() {
-  var data_arr, initiateLocalData;
-  window.my_function = function(event, context, callback) {
-    callback.call(context, event);
-  };
-  initiateLocalData = function() {
-    var current_timestamp, local_db_timestamp, ttl_cache;
-    current_timestamp = new Date().getTime();
-    local_db_timestamp = db.get("skroutz_cache_timer:chosen");
-    if (local_db_timestamp !== false) {
-      local_db_timestamp = parseInt(local_db_timestamp, 10);
-    }
-    ttl_cache = 60 * 60 * 1000;
-    if (local_db_timestamp === false || (current_timestamp - local_db_timestamp) > ttl_cache) {
-      db.set("skroutz_cache_timer:chosen", new Date().getTime());
-      db.set("chosen_data", data_arr);
-    }
-    return true;
-  };
+  var data_arr;
   $(function() {
     var i, result_string, temp_data;
     if ($.fn.chosen) {
@@ -35,7 +18,7 @@
       $("select").trigger("liszt:updated");
     }
     $("select.selectorableium").Selectorableium({
-      app_name: "selectorableium_deva"
+      app_name: "selectorableium_dev"
     });
     window.a = $("select.selectorableium").data("Selectorableium");
   });
