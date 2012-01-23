@@ -1,8 +1,8 @@
 (function() {
   var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
   (function($, window, document) {
-    var Selectorableium, defaults, pluginName;
-    pluginName = "Selectorableium";
+    var Selectorablium, defaults, pluginName;
+    pluginName = "Selectorablium";
     defaults = {
       minCharsForRemoteSearch: 3,
       localCacheTimeout: 7 * 24 * 60 * 60 * 1000,
@@ -10,7 +10,7 @@
       maxResultsNum: 10,
       maxNewResultsNum: 5
     };
-    Selectorableium = function(element, options) {
+    Selectorablium = function(element, options) {
       if (!$.fn.toolsfreak) {
         return false;
       }
@@ -49,7 +49,7 @@
       this.got_focused = false;
       this.init();
     };
-    Selectorableium.prototype = {
+    Selectorablium.prototype = {
       name: pluginName,
       defaults: defaults,
       init: function() {
@@ -58,12 +58,12 @@
         this.registerEventHandlers();
       },
       makeDbPreparation: function() {
-        this.db = Selectorableium.getLocalDBObj();
-        Selectorableium.initiateLocalData.call(this);
+        this.db = Selectorablium.getLocalDBObj();
+        Selectorablium.initiateLocalData.call(this);
       },
       createHtmlElements: function() {
         var HTML_string;
-        this.el_container = $('<div class="selectorableium_cont">').css({
+        this.el_container = $('<div class="selectorablium_cont">').css({
           width: this.el.outerWidth(),
           minHeight: this.el.outerHeight()
         });
@@ -440,7 +440,7 @@
         $.fn.toolsfreak.error_func(message, where);
       }
     };
-    Selectorableium.getLocalDBObj = function() {
+    Selectorablium.getLocalDBObj = function() {
       try {
         return $.fn.storagefreak();
       } catch (e) {
@@ -448,7 +448,7 @@
         return null;
       }
     };
-    Selectorableium.initiateLocalData = function() {
+    Selectorablium.initiateLocalData = function() {
       var current_timestamp;
       current_timestamp = new Date().getTime();
       this.local_db_timestamp = this.__dbGet("timestamp");
@@ -488,10 +488,10 @@
         this.data = this.__dbGet(this.options.data_name + "_data");
       }
     };
-    $.fn.Selectorableium = function(options) {
+    $.fn.Selectorablium = function(options) {
       this.each(function() {
         if (!$.data(this, pluginName)) {
-          $.data(this, pluginName, new Selectorableium(this, options));
+          $.data(this, pluginName, new Selectorablium(this, options));
         }
       });
     };

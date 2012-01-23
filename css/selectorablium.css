@@ -1,4 +1,4 @@
-.selectorableium_cont {
+.selectorablium_cont {
   position: absolute;
   top: 0px;
   left: 0px;
@@ -7,10 +7,10 @@
   display: block;
   box-sizing: border-box;
   -moz-box-sizing: border-box; }
-  .selectorableium_cont .top {
+  .selectorablium_cont .top {
     box-sizing: border-box;
     -moz-box-sizing: border-box; }
-    .selectorableium_cont .top .initial_loader {
+    .selectorablium_cont .top .initial_loader {
       width: 100%;
       height: 100%;
       display: none;
@@ -22,7 +22,7 @@
       padding: 6px 0 0 14px;
       border-radius: 2px;
       color: white; }
-  .selectorableium_cont .inner_container {
+  .selectorablium_cont .inner_container {
     display: none;
     margin: 1px 0 0 0;
     position: relative;
@@ -31,11 +31,11 @@
     background-color: #ddd;
     border: 1px solid #ccc;
     border-radius: 2px; }
-    .selectorableium_cont .inner_container form {
+    .selectorablium_cont .inner_container form {
       padding: 0px;
       margin: 5px;
       position: relative; }
-      .selectorableium_cont .inner_container form input {
+      .selectorablium_cont .inner_container form input {
         width: 100%;
         margin: 0px;
         padding: 4px;
@@ -43,7 +43,7 @@
         height: 26px;
         box-sizing: border-box;
         -moz-box-sizing: border-box; }
-      .selectorableium_cont .inner_container form .loader {
+      .selectorablium_cont .inner_container form .loader {
         background: transparent url("../images/ajax-loader.gif") no-repeat top left;
         width: 16px;
         height: 16px;
@@ -52,7 +52,7 @@
         right: 5px;
         z-index: 1;
         display: none; }
-      .selectorableium_cont .inner_container form .XHRCounter {
+      .selectorablium_cont .inner_container form .XHRCounter {
         height: 3px;
         position: absolute;
         bottom: -3px;
@@ -60,21 +60,21 @@
         width: 0px;
         background-color: #777;
         z-index: 1; }
-    .selectorableium_cont .inner_container .list_container {
+    .selectorablium_cont .inner_container .list_container {
       margin: 0px;
       padding: 0px;
       border-top: 1px solid #ccc;
       border-radius: 2px; }
-      .selectorableium_cont .inner_container .list_container li {
+      .selectorablium_cont .inner_container .list_container li {
         border-bottom: 1px solid #ccc;
         border-radius: 2px; }
-        .selectorableium_cont .inner_container .list_container li:last-child {
+        .selectorablium_cont .inner_container .list_container li:last-child {
           border-bottom: 0px none; }
-          .selectorableium_cont .inner_container .list_container li:last-child .selected {
+          .selectorablium_cont .inner_container .list_container li:last-child .selected {
             border-radius: 0 0 2px 2px; }
-        .selectorableium_cont .inner_container .list_container li p {
+        .selectorablium_cont .inner_container .list_container li p {
           cursor: default; }
-      .selectorableium_cont .inner_container .list_container .item, .selectorableium_cont .inner_container .list_container p {
+      .selectorablium_cont .inner_container .list_container .item, .selectorablium_cont .inner_container .list_container p {
         padding: 6px 6px 6px 15px;
         line-height: 18px;
         color: #333;
@@ -82,9 +82,9 @@
         display: block;
         cursor: pointer;
         overflow: hidden; }
-        .selectorableium_cont .inner_container .list_container .item:hover, .selectorableium_cont .inner_container .list_container p:hover {
+        .selectorablium_cont .inner_container .list_container .item:hover, .selectorablium_cont .inner_container .list_container p:hover {
           text-decoration: none; }
-        .selectorableium_cont .inner_container .list_container .item.selected, .selectorableium_cont .inner_container .list_container p.selected {
+        .selectorablium_cont .inner_container .list_container .item.selected, .selectorablium_cont .inner_container .list_container p.selected {
           background-color: #0064cd;
           background-repeat: repeat-x;
           background-image: -khtml-gradient(linear, left top, left bottom, from(#049cdb), to(#0064cd));
@@ -98,14 +98,14 @@
           text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
           margin: 0 -1px 0 -1px;
           color: white; }
-          .selectorableium_cont .inner_container .list_container .item.selected .highlight, .selectorableium_cont .inner_container .list_container p.selected .highlight {
+          .selectorablium_cont .inner_container .list_container .item.selected .highlight, .selectorablium_cont .inner_container .list_container p.selected .highlight {
             text-decoration: underline; }
-        .selectorableium_cont .inner_container .list_container .item .highlight, .selectorableium_cont .inner_container .list_container p .highlight {
+        .selectorablium_cont .inner_container .list_container .item .highlight, .selectorablium_cont .inner_container .list_container p .highlight {
           text-decoration: underline; }
-  .selectorableium_cont .clearfix {
+  .selectorablium_cont .clearfix {
     zoom: 1; }
-    .selectorableium_cont .clearfix:after {
+    .selectorablium_cont .clearfix:after {
       clear: both; }
-    .selectorableium_cont .clearfix:after, .selectorableium_cont .clearfix:before {
+    .selectorablium_cont .clearfix:after, .selectorablium_cont .clearfix:before {
       content: "";
       display: table; }

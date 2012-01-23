@@ -1,4 +1,4 @@
-.selectorableium_cont{
+.selectorablium_cont{
   position:absolute;
   top:0px;
   left:0px;
@@ -8,7 +8,6 @@
   box-sizing: border-box;
   -moz-box-sizing: border-box;
   .top{
-    // border:1px solid black;
     box-sizing: border-box;
     -moz-box-sizing: border-box;
     .initial_loader{
@@ -113,12 +112,10 @@
           color: white;
           .highlight{
             text-decoration: underline;
-            // color:#333;
           }
         }
         .highlight{
           text-decoration: underline;
-          // color:white;
         }
       }
     }

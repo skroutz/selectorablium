@@ -1,6 +1,6 @@
 ( ($, window, document) ->
   ##PRIVATE PROPERTIES
-  pluginName = "Selectorableium"
+  pluginName = "Selectorablium"
   defaults   =
     minCharsForRemoteSearch    : 3
     localCacheTimeout          : 7 * 24 * 60 * 60 * 1000 #milliseconds #one week
@@ -8,7 +8,7 @@
     maxResultsNum              : 10
     maxNewResultsNum           : 5
   
-  Selectorableium = (element, options) ->
+  Selectorablium = (element, options) ->
     return false unless $.fn.toolsfreak
     return false unless $.fn.storagefreak
     @timers_func        = $.fn.toolsfreak.timers_handler()
@@ -50,7 +50,7 @@
     
     return
 
-  Selectorableium:: =
+  Selectorablium:: =
     name     : pluginName
     defaults : defaults
     
@@ -61,12 +61,12 @@
       return
     
     makeDbPreparation: ->
-      @db = Selectorableium.getLocalDBObj()
-      Selectorableium.initiateLocalData.call this
+      @db = Selectorablium.getLocalDBObj()
+      Selectorablium.initiateLocalData.call this
       return
 
     createHtmlElements: ->
-      @el_container = $('<div class="selectorableium_cont">').css
+      @el_container = $('<div class="selectorablium_cont">').css
         width     : @el.outerWidth()
         minHeight : @el.outerHeight()
       
@@ -423,14 +423,14 @@
       return
   
   ##PRIVATE STATIC METHODS
-  Selectorableium.getLocalDBObj = ->
+  Selectorablium.getLocalDBObj = ->
     try
       return $.fn.storagefreak()
     catch e
       @__error 'getLocalDBObj', "could not get StorageFreak object"
       return null
 
-  Selectorableium.initiateLocalData = () ->
+  Selectorablium.initiateLocalData = () ->
     current_timestamp = new Date().getTime()
     @local_db_timestamp = @__dbGet "timestamp"
     
@@ -468,9 +468,9 @@
     
     return
 
-  $.fn.Selectorableium = (options) ->
+  $.fn.Selectorablium = (options) ->
     @each ->
-      $.data this, pluginName, new Selectorableium(this, options)  unless $.data(this, pluginName)
+      $.data this, pluginName, new Selectorablium(this, options)  unless $.data(this, pluginName)
       return
     
     return
