@@ -35,7 +35,7 @@
       $("select").trigger("liszt:updated");
     }
     $("select.selectorableium").Selectorableium({
-      app_name: "selectorableium_dev"
+      app_name: "selectorableium_deva"
     });
     window.a = $("select.selectorableium").data("Selectorableium");
   });

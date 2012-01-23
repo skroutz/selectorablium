@@ -5,14 +5,17 @@
   width: 100%;
   z-index: 2;
   display: block;
-  box-sizing: border-box; }
+  box-sizing: border-box;
+  -moz-box-sizing: border-box; }
   .selectorableium_cont .top {
-    box-sizing: border-box; }
+    box-sizing: border-box;
+    -moz-box-sizing: border-box; }
     .selectorableium_cont .top .initial_loader {
       width: 100%;
       height: 100%;
       display: none;
       box-sizing: border-box;
+      -moz-box-sizing: border-box;
       background: #888888 url("../images/initial-loader.gif") no-repeat 97% 5px;
       opacity: 0.9;
       font-size: 13px;
@@ -21,13 +24,15 @@
       color: white; }
   .selectorableium_cont .inner_container {
     display: none;
-    margin: 0px;
-    background-color: green;
-    border: 1px solid black;
+    margin: 1px 0 0 0;
     position: relative;
-    box-sizing: border-box; }
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    background-color: #ddd;
+    border: 1px solid #ccc;
+    border-radius: 2px; }
     .selectorableium_cont .inner_container form {
-      padding: 0px 0 3px 0;
+      padding: 0px;
       margin: 5px;
       position: relative; }
       .selectorableium_cont .inner_container form input {
@@ -36,7 +41,8 @@
         padding: 4px;
         line-height: 18px;
         height: 26px;
-        box-sizing: border-box; }
+        box-sizing: border-box;
+        -moz-box-sizing: border-box; }
       .selectorableium_cont .inner_container form .loader {
         background: transparent url("../images/ajax-loader.gif") no-repeat top left;
         width: 16px;
@@ -49,22 +55,29 @@
       .selectorableium_cont .inner_container form .XHRCounter {
         height: 3px;
         position: absolute;
-        bottom: 0px;
+        bottom: -3px;
         left: 0px;
         width: 0px;
-        background-color: black;
+        background-color: #777;
         z-index: 1; }
     .selectorableium_cont .inner_container .list_container {
       margin: 0px;
-      padding: 0px; }
+      padding: 0px;
+      border-top: 1px solid #ccc;
+      border-radius: 2px; }
       .selectorableium_cont .inner_container .list_container li {
-        border-bottom: 1px solid orange; }
+        border-bottom: 1px solid #ccc;
+        border-radius: 2px; }
+        .selectorableium_cont .inner_container .list_container li:last-child {
+          border-bottom: 0px none; }
+          .selectorableium_cont .inner_container .list_container li:last-child .selected {
+            border-radius: 0 0 2px 2px; }
         .selectorableium_cont .inner_container .list_container li p {
           cursor: default; }
       .selectorableium_cont .inner_container .list_container .item, .selectorableium_cont .inner_container .list_container p {
         padding: 6px 6px 6px 15px;
         line-height: 18px;
-        color: black;
+        color: #333;
         font-weight: bold;
         display: block;
         cursor: pointer;
@@ -72,10 +85,23 @@
         .selectorableium_cont .inner_container .list_container .item:hover, .selectorableium_cont .inner_container .list_container p:hover {
           text-decoration: none; }
         .selectorableium_cont .inner_container .list_container .item.selected, .selectorableium_cont .inner_container .list_container p.selected {
-          background-color: pink; }
-        .selectorableium_cont .inner_container .list_container .item .highlight, .selectorableium_cont .inner_container .list_container p .highlight {
-          text-decoration: underline;
+          background-color: #0064cd;
+          background-repeat: repeat-x;
+          background-image: -khtml-gradient(linear, left top, left bottom, from(#049cdb), to(#0064cd));
+          background-image: -moz-linear-gradient(top, #049cdb, #0064cd);
+          background-image: -ms-linear-gradient(top, #049cdb, #0064cd);
+          background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #049cdb), color-stop(100%, #0064cd));
+          background-image: -webkit-linear-gradient(top, #049cdb, #0064cd);
+          background-image: -o-linear-gradient(top, #049cdb, #0064cd);
+          background-image: linear-gradient(top, #049cdb, #0064cd);
+          filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#049cdb', endColorstr='#0064cd', GradientType=0);
+          text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
+          margin: 0 -1px 0 -1px;
           color: white; }
+          .selectorableium_cont .inner_container .list_container .item.selected .highlight, .selectorableium_cont .inner_container .list_container p.selected .highlight {
+            text-decoration: underline; }
+        .selectorableium_cont .inner_container .list_container .item .highlight, .selectorableium_cont .inner_container .list_container p .highlight {
+          text-decoration: underline; }
   .selectorableium_cont .clearfix {
     zoom: 1; }
     .selectorableium_cont .clearfix:after {
