@@ -287,9 +287,9 @@
         sliding_timer = 0;
         new_items.each(__bind(function(index, item) {
           setTimeout(__bind(function() {
-            $(item).slideDown();
+            $(item).slideDown(70);
           }, this), sliding_timer);
-          sliding_timer += 120;
+          sliding_timer += 100;
         }, this));
         this.items_list = this.el_list_cont.find(".item");
         this.selected_item = this.el_list_cont.find(".selected");

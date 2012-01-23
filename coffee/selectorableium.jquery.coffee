@@ -280,10 +280,10 @@
       sliding_timer = 0
       new_items.each (index, item)=>
         setTimeout =>
-          $(item).slideDown()
+          $(item).slideDown(70)
           return 
         , sliding_timer
-        sliding_timer += 120
+        sliding_timer += 100
         return
 
       @items_list = @el_list_cont.find(".item")
