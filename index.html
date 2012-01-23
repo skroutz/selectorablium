@@ -21,10 +21,25 @@
   </head>  
   <body>
     <form id="test_stuff" target="" action="" method="get">
-      <div id="input_cont">
-        <select class="selectorableium" name="eshop_id">
+      <div class="input_cont">
+        <select class="selectorableium" 
+        data-url="/earth/shops.json" 
+        data-query="query"
+        data-name="shops" 
+        name="eshop_id">
+          <option value="-1" selected>Διάλεξε e-shop</option>
+        </select>
+      </div>
+      
+      <div class="input_cont">
+        <select class="selectorableium" 
+        data-url="/earth/manufacturers.json" 
+        data-query="query" 
+        data-name="manufacturers" 
+        name="eshop_id">
           <option value="-1" selected>Διάλεξε κατασκευαστή</option>
         </select>
+
       </div>
 
       <button type="submit" class="btn">Submit</button>

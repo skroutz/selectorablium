@@ -39,12 +39,11 @@ $(->
       result_string += '<option value="' + val.id + '">' + val.name + '</option>'
       return
     
-    $('#input_cont select').html result_string
+    $('.input_cont select').html result_string
     $("select").trigger("liszt:updated");
 
   $("select.selectorableium").Selectorableium
-    instance_name: "selectorableium_dev"
-    data_name: "shops"
+    app_name      : "selectorableium_dev"
   
   window.a = $("select.selectorableium").data("Selectorableium")
   return

@@ -7,8 +7,18 @@
   display: block;
   box-sizing: border-box; }
   .selectorableium_cont .top {
-    border: 1px solid black;
     box-sizing: border-box; }
+    .selectorableium_cont .top .initial_loader {
+      width: 100%;
+      height: 100%;
+      display: none;
+      box-sizing: border-box;
+      background: #888888 url("../images/initial-loader.gif") no-repeat 97% 5px;
+      opacity: 0.9;
+      font-size: 13px;
+      padding: 6px 0 0 14px;
+      border-radius: 2px;
+      color: white; }
   .selectorableium_cont .inner_container {
     display: none;
     margin: 0px;

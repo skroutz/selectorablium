@@ -7,8 +7,20 @@
   display: block;
   box-sizing: border-box;
   .top{
-    border:1px solid black;
+    // border:1px solid black;
     box-sizing: border-box;
+    .initial_loader{
+      width:100%;
+      height:100%;
+      display:none;
+      box-sizing: border-box;
+      background: #888 url("../images/initial-loader.gif") no-repeat 97% 5px;
+      opacity: 0.9;
+      font-size: 13px;
+      padding: 6px 0 0 14px;
+      border-radius: 2px;
+      color: white;
+    }
   }
   .inner_container{
     display:none;

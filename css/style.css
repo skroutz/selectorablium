@@ -36,4 +36,10 @@ a {
 #test_stuff {
   margin-left: 100px; }
   #test_stuff button {
-    margin-top: 20px; }
+    float: left;
+    clear: both;
+    margin: 20px 0 0 20px; }
+
+.input_cont {
+  float: left;
+  margin: 20px; }

@@ -5,7 +5,6 @@
     pluginName = "Selectorableium";
     defaults = {
       minCharsForRemoteSearch: 1,
-      baseUrl: "/earth/",
       localCacheTimeout: 7 * 24 * 60 * 60 * 1000,
       XHRTimeout: 1200,
       maxResultsNum: 10,
@@ -21,12 +20,15 @@
       this.timers_func = $.fn.toolsfreak.timers_handler();
       this.el = $(element).attr("autocomplete", "off");
       this.options = $.extend({}, defaults, options);
-      if (!this.options.instance_name || this.options.instance_name === "") {
-        this.__error('objectCreation', "no instance_name specified on params");
+      if (!this.options.app_name || this.options.app_name === "") {
+        this.__error('objectCreation', "no app_name specified on params");
         return false;
       }
+      this.options.url = this.el.data("url");
+      this.options.query_string = this.el.data("query");
+      this.options.data_name = this.el.data("name");
       this.db = null;
-      this.db_prefix = "skr." + this.options.instance_name + ".";
+      this.db_prefix = "skr." + this.options.app_name + ".";
       this.el_container = null;
       this.el_top = null;
       this.el_inner_container = null;
@@ -34,6 +36,7 @@
       this.el_list_cont = null;
       this.el_XHRCounter = null;
       this.el_loader = null;
+      this.initial_loader = null;
       this.query = "";
       this.queryLength = "";
       this.data = null;
@@ -42,14 +45,16 @@
       this.items_list = null;
       this.result_to_prepend = [];
       this.no_results = false;
+      this.do_not_hide_me = false;
+      this.got_focused = false;
       this.init();
     };
     Selectorableium.prototype = {
       name: pluginName,
       defaults: defaults,
       init: function() {
-        this.makeDbPreparation();
         this.createHtmlElements();
+        this.makeDbPreparation();
         this.registerEventHandlers();
       },
       makeDbPreparation: function() {
@@ -62,7 +67,9 @@
           width: this.el.outerWidth(),
           minHeight: this.el.outerHeight()
         });
-        HTML_string = '<div class="top"></div>';
+        HTML_string = '<div class="top">';
+        HTML_string += '<div class="initial_loader">Loading initial data...</div>';
+        HTML_string += '</div>';
         HTML_string += '<div class="inner_container clearfix">';
         HTML_string += '<form>';
         HTML_string += '<input name="var_name">';
@@ -76,8 +83,9 @@
         this.el_inner_container = this.el_container.find(".inner_container");
         this.el_input = this.el_container.find("input").attr("autocomplete", "off");
         this.el_list_cont = this.el_container.find(".list_container");
-        this.el_XHRCounter = this.el_inner_container.find(".XHRCounter");
-        this.el_loader = this.el_inner_container.find(".loader");
+        this.el_XHRCounter = this.el_container.find(".XHRCounter");
+        this.el_loader = this.el_container.find(".loader");
+        this.initial_loader = this.el_container.find(".initial_loader");
         this.el.parent().css('position', 'relative').append(this.el_container);
       },
       registerEventHandlers: function() {
@@ -85,15 +93,31 @@
           if (this.el_inner_container.is(":visible")) {
             this.hide();
           } else {
-            this.el_inner_container.slideDown(200);
+            if (this.el_top.hasClass("disabled") === false) {
+              this.el_inner_container.slideDown(200);
+              this.el_input.focus();
+            }
           }
-          this.el_input.focus();
         }, this));
-        this.el_container.on('click', function(e) {
-          return e.stopPropagation();
-        });
+        this.el.on('focus', __bind(function(e) {
+          if (this.el_inner_container.is(":visible")) {
+            this.hide();
+          } else {
+            if (this.el_top.hasClass("disabled") === false) {
+              this.el_inner_container.slideDown(200);
+              this.el_input.focus();
+            }
+          }
+        }, this));
+        this.el_container.on('click', __bind(function(e) {
+          this.do_not_hide_me = true;
+        }, this));
         $("html").on('click', __bind(function(e) {
-          this.hide();
+          if (this.do_not_hide_me === true) {
+            this.do_not_hide_me = false;
+          } else {
+            this.hide();
+          }
         }, this));
         if (window.opera || $.browser.mozilla) {
           this.el_input.on('keypress', __bind(function(e) {
@@ -115,10 +139,15 @@
           this.el_list_cont.empty();
           this.el_loader.hide();
           this.el_XHRCounter.hide();
+          this.timers_func.end("RemoteSearchTimeout");
+          this.query = "";
         }
       },
       onKeyPress: function(e) {
         switch (e.keyCode) {
+          case 9:
+            this.hide();
+            return true;
           case 27:
             this.hide();
             break;
@@ -158,12 +187,12 @@
           case 13:
           case 91:
           case 20:
-          case 9:
           case 33:
           case 34:
           case 35:
           case 36:
           case 45:
+          case 9:
             return false;
         }
         this.query = this.el_input.val().trim();
@@ -200,11 +229,10 @@
         this.makeSuggestionListFor(query);
       },
       beginRemoteSearchFor: function(query) {
-        var url;
-        url = this.options.baseUrl + this.options.data_name + ".json";
-        $.getJSON(url, {
-          query: query
-        }, __bind(function(response_data) {
+        var params;
+        params = {};
+        params[this.options.query_string] = query;
+        $.getJSON(this.options.url, params, __bind(function(response_data) {
           var value, we_have_new_results, _i, _len;
           we_have_new_results = false;
           for (_i = 0, _len = response_data.length; _i < _len; _i++) {
@@ -280,9 +308,10 @@
         this.result_to_prepend = [];
       },
       makeSuggestionListFor: function(query) {
-        var id, lowerQuery, name, result_list, _ref;
+        var count, id, lowerQuery, name, result_list, _ref;
         result_list = [];
         lowerQuery = query.toLowerCase();
+        count = 0;
         _ref = this.data;
         for (id in _ref) {
           name = _ref[id];
@@ -403,7 +432,7 @@
           message = func_name;
           func_name = x;
         }
-        name = (this.options.instance_name ? this.options.instance_name : "[" + this.name + "]");
+        name = (this.options.app_name ? this.options.app_name : "[" + this.name + "]");
         where = "@" + name + ":";
         if (func_name) {
           where = func_name + where;
@@ -427,9 +456,11 @@
         this.local_db_timestamp = parseInt(this.local_db_timestamp, 10);
       }
       if (this.local_db_timestamp === false || (current_timestamp - this.local_db_timestamp) > this.options.localCacheTimeout) {
+        this.initial_loader.show();
+        this.el_top.addClass("disabled");
         try {
           $.ajax({
-            url: this.options.baseUrl + this.options.data_name + ".json",
+            url: this.options.url,
             type: "get",
             dataType: "json",
             success: __bind(function(data) {
@@ -441,6 +472,9 @@
                 new_data[value.id] = value.name;
               }
               this.__dbSet(this.options.data_name + "_data", new_data);
+              this.data = new_data;
+              this.initial_loader.fadeOut();
+              this.el_top.removeClass("disabled");
             }, this),
             error: __bind(function(a, b, c) {
               this.__error('initiateLocalData', "XHR error");
@@ -450,8 +484,9 @@
           this.__error('initiateLocalData', "catched XHR error");
           return false;
         }
+      } else {
+        this.data = this.__dbGet(this.options.data_name + "_data");
       }
-      this.data = this.__dbGet(this.options.data_name + "_data");
     };
     $.fn.Selectorableium = function(options) {
       this.each(function() {

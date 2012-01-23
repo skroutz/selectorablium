@@ -3,8 +3,6 @@
   pluginName = "Selectorableium"
   defaults   =
     minCharsForRemoteSearch    : 1
-    baseUrl                    : "/earth/"
-    # http://192.168.6.56:3002/earth/shops.json?query=pla
     localCacheTimeout          : 7 * 24 * 60 * 60 * 1000 #milliseconds #one week
     XHRTimeout                 : 1200 #milliseconds
     maxResultsNum              : 10
@@ -14,22 +12,18 @@
     return false unless $.fn.toolsfreak
     return false unless $.fn.storagefreak
     @timers_func        = $.fn.toolsfreak.timers_handler()
-    #
-      # @PQ_func = $.fn.toolsfreak.priorityQueue
-      # @queryWords_func = $.fn.toolsfreak.queryWordMatchesInText
-      # @unique_func = $.fn.toolsfreak.filterUnique
-      # @concatSliceUnique_func = $.fn.toolsfreak.concatSliceUnique
-      # @wresize_func = $.fn.toolsfreak.wresize
-
     @el                 = $(element).attr("autocomplete", "off")
     @options            = $.extend {}, defaults, options
 
-    if !@options.instance_name or @options.instance_name is ""
-      @__error 'objectCreation', "no instance_name specified on params"
+    if !@options.app_name or @options.app_name is ""
+      @__error 'objectCreation', "no app_name specified on params"
       return false
-
+    @options.url = @el.data "url"
+    @options.query_string = @el.data "query"
+    @options.data_name = @el.data "name"
+    
     @db                 = null
-    @db_prefix          = "skr." + @options.instance_name + "."
+    @db_prefix          = "skr." + @options.app_name + "."
     
     @el_container       = null
     @el_top             = null
@@ -38,6 +32,7 @@
     @el_list_cont       = null
     @el_XHRCounter      = null
     @el_loader          = null
+    @initial_loader     = null
 
     @query              = ""
     @queryLength        = ""
@@ -48,37 +43,8 @@
     @items_list         = null
     @result_to_prepend  = []
     @no_results         = false
-    #
-      # @suggestions_container = ""
-      # @last_invalid_query = null
-      # #default stuff
-      # @_defaults = defaults
-      # @_name = pluginName
-      # ##custom stuff
-      # @query = ""
-      # @queryLength = ""
-      # @queryWords = []
-      # @queryWordsLength = 0
-      # @we_have_books = false
-      # @suggestions = []
-      # @hidden = false
-
-      # @serviceUrl = @options.serviceUrl
-      # ## under this the suggestion list is appended each time
-      # #local DB object
-      # ##used for localDB cache
-      # @local_db_timestamp = null
-      # ##used to revert from text substitution from change "select" events
-      # @selected_suggest_item = null
-      # @list_of_manufacturers = []
-      # @list_of_categories = []
-      
-      # @PQ = null
-      # @queryWords = null
-      # @unique = null
-      # @concatSliceUnique = null
-      # @wresize = null
-      # @timers_handler = null
+    @do_not_hide_me     = false
+    @got_focused        = false
     
     @init()
     
@@ -89,8 +55,8 @@
     defaults : defaults
     
     init: ->
-      @makeDbPreparation()
       @createHtmlElements()
+      @makeDbPreparation()
       @registerEventHandlers()
       return
     
@@ -104,7 +70,9 @@
         width     : @el.outerWidth()
         minHeight : @el.outerHeight()
       
-      HTML_string  = '<div class="top"></div>'
+      HTML_string  = '<div class="top">'
+      HTML_string += '<div class="initial_loader">Loading initial data...</div>'
+      HTML_string += '</div>'
       HTML_string += '<div class="inner_container clearfix">'
       HTML_string += '<form>'
       HTML_string += '<input name="var_name">'
@@ -113,36 +81,51 @@
       HTML_string += '</form>'
       HTML_string += '<ul class="list_container"></ul>'
       HTML_string += '</div>'
-      
       @el_container.append HTML_string
       
       @el_top             = @el_container.find(".top").css 'height', @el.outerHeight(true)
       @el_inner_container = @el_container.find(".inner_container")
       @el_input           = @el_container.find("input").attr("autocomplete", "off")
       @el_list_cont       = @el_container.find(".list_container")
-      @el_XHRCounter      = @el_inner_container.find(".XHRCounter")
-      @el_loader          = @el_inner_container.find(".loader")
+      @el_XHRCounter      = @el_container.find(".XHRCounter")
+      @el_loader          = @el_container.find(".loader")
+      @initial_loader     = @el_container.find(".initial_loader")
+      
       
       @el.parent().css('position','relative').append @el_container
+
       return
 
     registerEventHandlers: ->
       @el_top.on 'click', (e) =>
         if @el_inner_container.is(":visible")
           @hide()
-        else
-          @el_inner_container.slideDown(200)
-        
-        @el_input.focus()
+        else 
+          if @el_top.hasClass("disabled") is false
+            @el_inner_container.slideDown(200)
+            @el_input.focus()
 
         return
       
-      @el_container.on 'click', (e)->
-        e.stopPropagation()
-        # return false
+      @el.on 'focus', (e) =>
+        if @el_inner_container.is(":visible")
+          @hide()
+        else 
+          if @el_top.hasClass("disabled") is false
+            @el_inner_container.slideDown(200)
+            @el_input.focus()
+
+        return
+      
+      @el_container.on 'click', (e)=>
+        @do_not_hide_me = true
+        return
       
       $("html").on 'click', (e)=>
-        @hide()
+        if @do_not_hide_me is true
+          @do_not_hide_me = false
+        else
+          @hide()
         return
 
       if window.opera or $.browser.mozilla
@@ -164,11 +147,15 @@
         @el_list_cont.empty()
         @el_loader.hide()
         @el_XHRCounter.hide()
+        @timers_func.end("RemoteSearchTimeout")
+        @query = ""
       return
 
     onKeyPress: (e) ->
-      # console.log "KeyPress:", e.keyCode
       switch e.keyCode
+        when 9 #tab
+          @hide()
+          return true
         when 27 #esc
           @hide()
         when 38 #up
@@ -198,8 +185,8 @@
     
     onKeyUp: (e) ->
       switch e.keyCode
-        #KEYS SHIFT, CTRL, ALT, LEFT, UP, RIGHT, DOWN, ESC, ENTER, WIN KEY, CAPS LOCK, TAB, PAGEUP, PAGEDOWN, HOME, END, INSERT
-        when 16, 17, 18, 37, 38, 39, 40, 27, 13, 91, 20, 9, 33, 34, 35, 36, 45
+        #KEYS SHIFT, CTRL, ALT, LEFT, UP, RIGHT, DOWN, ESC, ENTER, WIN KEY, CAPS LOCK, PAGEUP, PAGEDOWN, HOME, END, INSERT, TAB
+        when 16, 17, 18, 37, 38, 39, 40, 27, 13, 91, 20, 33, 34, 35, 36, 45, 9
           return false
       
       @query = @el_input.val().trim()
@@ -242,9 +229,10 @@
       return
     
     beginRemoteSearchFor: (query) ->
-      url = @options.baseUrl + @options.data_name + ".json"
-      
-      $.getJSON url, {query: query}, (response_data) =>
+      params = {}
+      params[@options.query_string] = query
+
+      $.getJSON @options.url, params, (response_data) =>
         we_have_new_results = false
         for value in response_data
           if !@data[value.id]
@@ -314,9 +302,12 @@
     makeSuggestionListFor: (query) ->
       result_list = []
       lowerQuery = query.toLowerCase()
+      count = 0
       for id, name of @data
         ## TODO convert it to REXEXP.test
         result_list.push({id: id, name: name}) if name.toLowerCase().indexOf(lowerQuery) isnt -1
+      
+      
       if result_list.length is 0
         @no_results = true
       
@@ -422,7 +413,7 @@
         message = func_name
         func_name = x
       
-      name = (if @options.instance_name then @options.instance_name else "[" + @name + "]" )
+      name = (if @options.app_name then @options.app_name else "[" + @name + "]" )
       where = "@" + name + ":"
       if func_name
         where = func_name + where
@@ -447,9 +438,11 @@
       @local_db_timestamp = parseInt @local_db_timestamp, 10
     
     if @local_db_timestamp is false or (current_timestamp - @local_db_timestamp) > @options.localCacheTimeout
+      @initial_loader.show()
+      @el_top.addClass "disabled"
       try
         $.ajax
-          url: @options.baseUrl + @options.data_name + ".json"
+          url: @options.url
           type: "get"
           dataType: "json"
           success: (data)=>
@@ -457,7 +450,12 @@
             new_data = {}
             for index, value of data
               new_data[value.id] = value.name
+            
             @__dbSet @options.data_name + "_data", new_data
+            @data = new_data
+            
+            @initial_loader.fadeOut()
+            @el_top.removeClass "disabled"
             return
           error: (a,b,c)=>
             @__error 'initiateLocalData', "XHR error"
@@ -465,8 +463,8 @@
       catch e
         @__error 'initiateLocalData', "catched XHR error"
         return false
-    
-    @data = @__dbGet @options.data_name + "_data"
+    else
+      @data = @__dbGet @options.data_name + "_data"
     
     return
 
