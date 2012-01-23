@@ -54,8 +54,11 @@
       padding:0px;
       li{
         border-bottom: 1px solid orange;
+        p{
+          cursor:default;
+        }
       }
-      .item{
+      .item, p{
         padding:6px 6px 6px 15px;
         line-height:18px;
         color: black;

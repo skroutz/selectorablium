@@ -49,7 +49,9 @@
       padding: 0px; }
       .selectorableium_cont .inner_container .list_container li {
         border-bottom: 1px solid orange; }
-      .selectorableium_cont .inner_container .list_container .item {
+        .selectorableium_cont .inner_container .list_container li p {
+          cursor: default; }
+      .selectorableium_cont .inner_container .list_container .item, .selectorableium_cont .inner_container .list_container p {
         padding: 6px 6px 6px 15px;
         line-height: 18px;
         color: black;
@@ -57,11 +59,11 @@
         display: block;
         cursor: pointer;
         overflow: hidden; }
-        .selectorableium_cont .inner_container .list_container .item:hover {
+        .selectorableium_cont .inner_container .list_container .item:hover, .selectorableium_cont .inner_container .list_container p:hover {
           text-decoration: none; }
-        .selectorableium_cont .inner_container .list_container .item.selected {
+        .selectorableium_cont .inner_container .list_container .item.selected, .selectorableium_cont .inner_container .list_container p.selected {
           background-color: pink; }
-        .selectorableium_cont .inner_container .list_container .item .highlight {
+        .selectorableium_cont .inner_container .list_container .item .highlight, .selectorableium_cont .inner_container .list_container p .highlight {
           text-decoration: underline;
           color: white; }
   .selectorableium_cont .clearfix {

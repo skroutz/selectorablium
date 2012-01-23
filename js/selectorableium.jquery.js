@@ -41,6 +41,7 @@
       this.selected_item = null;
       this.items_list = null;
       this.result_to_prepend = [];
+      this.no_results = false;
       this.init();
     };
     Selectorableium.prototype = {
@@ -112,6 +113,8 @@
           this.el_inner_container.slideUp(200);
           this.el_input.val("");
           this.el_list_cont.empty();
+          this.el_loader.hide();
+          this.el_XHRCounter.hide();
         }
       },
       onKeyPress: function(e) {
@@ -146,12 +149,21 @@
         switch (e.keyCode) {
           case 16:
           case 17:
+          case 18:
           case 37:
           case 38:
           case 39:
           case 40:
           case 27:
           case 13:
+          case 91:
+          case 20:
+          case 9:
+          case 33:
+          case 34:
+          case 35:
+          case 36:
+          case 45:
             return false;
         }
         this.query = this.el_input.val().trim();
@@ -160,6 +172,8 @@
           this.el_list_cont.empty();
           this.selected_item = null;
           this.timers_func.end("RemoteSearchTimeout");
+          this.el_loader.hide();
+          this.el_XHRCounter.hide();
         } else {
           query = this.query;
           this.beginLocalSearchFor(query);
@@ -174,6 +188,7 @@
         return false;
       },
       showCountdownForXHR: function() {
+        this.el_loader.hide();
         this.el_XHRCounter.stop(true, true).css("width", "0").show();
         this.el_XHRCounter.animate({
           width: "100%"
@@ -204,9 +219,19 @@
             }
           }
           if (we_have_new_results && query === this.query) {
+            this.el_list_cont.find(".empty-message").remove();
             this.__dbSet(this.options.data_name + "_data", this.data);
+            this.result_to_prepend = this.result_to_prepend.sort(function(a, b) {
+              if (a.name < b.name) {
+                return -1;
+              } else {
+                return 1;
+              }
+            });
             this.result_to_prepend = this.result_to_prepend.slice(0, this.options.maxNewResultsNum);
             this.insertNewResults(query);
+          } else {
+            this.el_list_cont.find(".empty-message").text("No results found");
           }
           this.el_loader.hide();
         }, this));
@@ -268,41 +293,63 @@
             });
           }
         }
+        if (result_list.length === 0) {
+          this.no_results = true;
+        }
         this.result_list = result_list.slice(0, this.options.maxResultsNum);
+        this.result_list = this.result_list.sort(function(a, b) {
+          if (a.name < b.name) {
+            return -1;
+          } else {
+            return 1;
+          }
+        });
         this.printSuggestionList(query);
       },
       printSuggestionList: function(cached_result) {
-        var a, fragment, item, li, me, _i, _len, _ref;
+        var a, fragment, item, li, me, p, _i, _len, _ref;
         this.el_list_cont.empty();
         fragment = document.createDocumentFragment();
-        _ref = this.result_list;
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          item = _ref[_i];
+        if (this.result_list.length === 0) {
           li = document.createElement("li");
-          a = document.createElement("a");
-          a.className = "item";
-          a.setAttribute("data-value", item.id);
-          a.setAttribute("href", "#");
-          a.appendChild(document.createTextNode(item.name));
-          li.appendChild(a);
+          p = document.createElement("p");
+          p.className = "empty-message";
+          p.setAttribute("href", "#");
+          p.appendChild(document.createTextNode("loading..."));
+          li.appendChild(p);
           fragment.appendChild(li);
+          this.el_list_cont.append(fragment);
+          this.el_list_cont[0].innerHTML += '';
+        } else {
+          _ref = this.result_list;
+          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+            item = _ref[_i];
+            li = document.createElement("li");
+            a = document.createElement("a");
+            a.className = "item";
+            a.setAttribute("data-value", item.id);
+            a.setAttribute("href", "#");
+            a.appendChild(document.createTextNode(item.name));
+            li.appendChild(a);
+            fragment.appendChild(li);
+          }
+          this.el_list_cont.append(fragment);
+          this.el_list_cont[0].innerHTML += '';
+          this.items_list = this.el_list_cont.find(".item");
+          me = this;
+          this.items_list.on('mouseenter', {
+            me: me
+          }, function() {
+            return me.selectThisItem($(this));
+          });
+          this.items_list.on('click', {
+            me: me
+          }, function() {
+            return me.activateTheSelectedItem();
+          });
+          this.selected_item = this.el_list_cont.find(".item:first").addClass("selected");
+          this.highlightTextAndItems();
         }
-        this.el_list_cont.append(fragment);
-        this.el_list_cont[0].innerHTML += '';
-        this.items_list = this.el_list_cont.find(".item");
-        me = this;
-        this.items_list.on('mouseenter', {
-          me: me
-        }, function() {
-          return me.selectThisItem($(this));
-        });
-        this.items_list.on('click', {
-          me: me
-        }, function() {
-          return me.activateTheSelectedItem();
-        });
-        this.selected_item = this.el_list_cont.find(".item:first").addClass("selected");
-        this.highlightTextAndItems();
       },
       highlightTextAndItems: function(items) {
         var item_to_highlight;
