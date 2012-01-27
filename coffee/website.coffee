@@ -1,14 +1,11 @@
 ##
 ##ONDOMREADY START
 $(->
+  ###INVOKE THE SELECTORABLIUM PLUGIN###
   $("select.selectorablium").Selectorablium
     app_name : "selectorablium_dev"
   
-  window.a = $("select.selectorablium:first").data("selectorablium")
-  
-
-
-  ###RESET THE SELECTORABLIUMS###
+  ###SET THE ONRESET EVENT HANDLERS FOR THE SELECTORABLIUMS###
   $("[type=reset]").on 'click', ->
     my_selectorabliums = $(this).parents('form').find('.selectorablium')
     my_selectorabliums.each ->
@@ -16,6 +13,7 @@ $(->
       return
     return
   
+  ###SET UP THE CUSTOM SETTERS FOR THE SELECTORABLIUMS###
   $("#eshop_setter").on 'click', (e)->
     e.stopPropagation()
     my_obj = $(".selectorablium:nth(0)").data("selectorablium")
