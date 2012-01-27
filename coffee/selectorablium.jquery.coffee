@@ -1,6 +1,6 @@
 ( ($, window, document) ->
   ##PRIVATE PROPERTIES
-  pluginName = "Selectorablium"
+  pluginName = "selectorablium"
   defaults   =
     minCharsForRemoteSearch    : 3
     localCacheTimeout          : 7 * 24 * 60 * 60 * 1000 #milliseconds #one week
@@ -23,7 +23,7 @@
     @options.data_name = @el.data "name"
     
     @db                 = null
-    @db_prefix          = "skr." + @options.app_name + "."
+    @db_prefix          = "skr." + @options.app_name + "." + pluginName + "."
     
     @el_container       = null
     @el_top             = null

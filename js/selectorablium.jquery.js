@@ -2,7 +2,7 @@
   var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
   (function($, window, document) {
     var Selectorablium, defaults, pluginName;
-    pluginName = "Selectorablium";
+    pluginName = "selectorablium";
     defaults = {
       minCharsForRemoteSearch: 3,
       localCacheTimeout: 7 * 24 * 60 * 60 * 1000,
@@ -28,7 +28,7 @@
       this.options.query_string = this.el.data("query");
       this.options.data_name = this.el.data("name");
       this.db = null;
-      this.db_prefix = "skr." + this.options.app_name + ".";
+      this.db_prefix = "skr." + this.options.app_name + "." + pluginName + ".";
       this.el_container = null;
       this.el_top = null;
       this.el_inner_container = null;
