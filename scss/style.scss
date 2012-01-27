@@ -80,15 +80,20 @@ a{
 }
 
 #test_stuff{
-  margin-left: 100px;
-  #submit_button{
-    float:left;
-    clear:both;
-    margin:20px 0 0 20px;
-  }
+  margin-left: 30px;
 }
 
+#buttons_cont{
+  margin:360px 0 0 20px;
+  clear: both;
+  float: left;
+  button{
+    float:left;
+    margin-right:20px;
+  }
+}
 .input_cont{
   float:left;
   margin:20px;
+  padding-right:46px;
 }

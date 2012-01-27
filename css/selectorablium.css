@@ -10,7 +10,8 @@
   .selectorablium_cont .top {
     box-sizing: border-box;
     -moz-box-sizing: border-box;
-    position: relative; }
+    position: relative;
+    cursor: pointer; }
     .selectorablium_cont .top .initial_loader {
       width: 100%;
       height: 100%;
@@ -24,20 +25,20 @@
       border-radius: 2px;
       color: white; }
     .selectorablium_cont .top .cancel_button {
-      display: none;
+      display: block;
+      width: 46px;
       position: absolute;
       float: none;
-      top: 6px;
-      right: 20px;
+      top: 0px;
+      right: -46px;
       padding: 0px;
       margin: 0px;
-      background: #eeeeee url("../images/chosen-sprite.png") no-repeat -47px 1px;
-      width: 16px;
-      height: 16px;
+      background-color: #eee;
+      color: #333;
       border: 1px solid #aaaaaa;
-      border-radius: 2px; }
+      border-radius: 0 4px 4px 0; }
       .selectorablium_cont .top .cancel_button:hover {
-        background: white url("../images/chosen-sprite.png") no-repeat -47px -10px; }
+        background-color: #fff; }
       .selectorablium_cont .top .cancel_button:active {
         border-color: #333; }
   .selectorablium_cont .inner_container {

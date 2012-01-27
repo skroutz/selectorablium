@@ -23,11 +23,9 @@
     @options.query_string  = @el.data "query"
     @options.data_name     = @el.data "name"
     
-    @options.default_value = @el.data "default_value" 
-    @options.default_value = @options.default_value || -1
-    @options.default_text  = @el.data "default_text"  
-    @options.default_text  = @options.default_text  || "Please select an option"
-    
+    @options.default_value = @el.data "default_value" || 0
+    @options.default_text  = @el.data "default_text" || "Please select an option"
+
     @db                    = null
     @db_prefix             = "skr." + @options.app_name + "." + pluginName + "."
     
@@ -79,7 +77,7 @@
       
       HTML_string  = '<div class="top">'
       HTML_string += '<div class="initial_loader">Loading initial data...</div>'
-      HTML_string += '<button class="cancel_button"></button>'
+      HTML_string += '<button class="cancel_button">Clear</button>'
       HTML_string += '</div>'
       HTML_string += '<div class="inner_container clearfix">'
       HTML_string += '<form>'
@@ -98,12 +96,15 @@
       @el_list_cont       = @el_container.find(".list_container")
       @el_XHRCounter      = @el_container.find(".XHRCounter")
       @el_loader          = @el_container.find(".loader")
-      @el_clear           = @el_container.find(".cancel_button")
+      @el_clear           = @el_container.find(".cancel_button").css 'height', @el.outerHeight(true)
       @el_initial_loader  = @el_container.find(".initial_loader")
       
       
       @el.parent().css('position','relative').append @el_container
-
+      @el.html('<option value="' + @options.default_value + '">' + @options.default_text + '</option>')
+      @el.css
+        'borderBottomRightRadius': 0
+        'borderTopRightRadius': 0
       return
 
     registerEventHandlers: ->
@@ -133,7 +134,7 @@
       
       @el_clear.on 'click', (e)=>
         e.stopPropagation()
-        @clearSelectItem()
+        @resetSelectItem()
         return false
 
       $("html").on 'click', (e)=>
@@ -162,6 +163,7 @@
         @el_list_cont.empty()
         @el_loader.hide()
         @el_XHRCounter.hide()
+        @selected_item = null
         @timers_func.end("RemoteSearchTimeout")
         @query = ""
       return
@@ -393,14 +395,13 @@
         
       return
     
-    clearSelectItem: () ->
+    resetSelectItem: () ->
       @el.html('<option value="' + @options.default_value + '">' + @options.default_text + '</option>')
-      @el_clear.hide()
+      @hide()
       return
 
     activateTheSelectedItem: () ->
       @el.html('<option value="' + @selected_item.data("value") + '" selected="selected">   ' + @selected_item.text() + '</option>')
-      @el_clear.show()
       @hide()
       return false
 
@@ -425,6 +426,11 @@
       @selectThisItem @items_list.filter(".item:nth(" + index + ")")
       return
     
+    setSelectItem: (params) ->
+      @el.html('<option value="' + params.value + '" selected="selected">   ' + params.text + '</option>')
+      @hide()
+      return
+
     __dbGet: (name)->
       return @db.get @db_prefix + name
 
