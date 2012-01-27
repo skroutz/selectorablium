@@ -46,7 +46,9 @@
         background-color: #fff;
       }
       &:active{
-        background-color: rgb(221, 221, 221);
+        box-shadow: 0 1px 3px black inset;
+        background-color: rgba(0, 0, 0, .3);
+        color: white;
       }
     }
   }
