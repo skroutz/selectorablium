@@ -146,7 +146,11 @@
       onKeyPress: function(e) {
         switch (e.keyCode) {
           case 9:
-            this.hide();
+            if (this.selected_item) {
+              this.activateTheSelectedItem();
+            } else {
+              this.hide();
+            }
             return true;
           case 27:
             this.hide();

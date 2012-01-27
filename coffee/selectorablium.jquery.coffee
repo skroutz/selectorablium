@@ -154,7 +154,10 @@
     onKeyPress: (e) ->
       switch e.keyCode
         when 9 #tab
-          @hide()
+          if @selected_item
+            @activateTheSelectedItem()
+          else  
+            @hide()
           return true
         when 27 #esc
           @hide()
