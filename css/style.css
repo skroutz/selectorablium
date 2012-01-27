@@ -35,7 +35,7 @@ a {
 
 #test_stuff {
   margin-left: 100px; }
-  #test_stuff button {
+  #test_stuff #submit_button {
     float: left;
     clear: both;
     margin: 20px 0 0 20px; }

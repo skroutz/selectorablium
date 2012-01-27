@@ -18,7 +18,9 @@
         <select class="selectorablium" 
         data-url="/earth/shops.json" 
         data-query="query"
-        data-name="shops" 
+        data-name="shops"
+        data-default_value="-20" 
+        data-default_text="Διάλεξε eshop" 
         name="eshop_id">
           <option value="-1" selected>Διάλεξε e-shop</option>
         </select>
@@ -29,13 +31,15 @@
         data-url="/earth/manufacturers.json" 
         data-query="query" 
         data-name="manufacturers" 
-        name="eshop_id">
+        data-default_value="-25" 
+        data-default_text="Διάλεξε manufacturer" 
+        name="manufacturer_id">
           <option value="-1" selected>Διάλεξε κατασκευαστή</option>
         </select>
 
       </div>
 
-      <button type="submit" class="btn">Submit</button>
+      <button id="submit_button" type="submit" class="btn">Submit</button>
     </form>
   </body>
 </html>

@@ -27,6 +27,10 @@
       this.options.url = this.el.data("url");
       this.options.query_string = this.el.data("query");
       this.options.data_name = this.el.data("name");
+      this.options.default_value = this.el.data("default_value");
+      this.options.default_value = this.options.default_value || -1;
+      this.options.default_text = this.el.data("default_text");
+      this.options.default_text = this.options.default_text || "Please select an option";
       this.db = null;
       this.db_prefix = "skr." + this.options.app_name + "." + pluginName + ".";
       this.el_container = null;
@@ -36,7 +40,8 @@
       this.el_list_cont = null;
       this.el_XHRCounter = null;
       this.el_loader = null;
-      this.initial_loader = null;
+      this.el_clear = null;
+      this.el_initial_loader = null;
       this.query = "";
       this.queryLength = "";
       this.data = null;
@@ -69,10 +74,12 @@
         });
         HTML_string = '<div class="top">';
         HTML_string += '<div class="initial_loader">Loading initial data...</div>';
+        HTML_string += '<button class="cancel_button"></button>';
         HTML_string += '</div>';
         HTML_string += '<div class="inner_container clearfix">';
         HTML_string += '<form>';
         HTML_string += '<input name="var_name">';
+        HTML_string += '<span class="input_icon"></span>';
         HTML_string += '<div class="loader"></div>';
         HTML_string += '<div class="XHRCounter"></div>';
         HTML_string += '</form>';
@@ -85,7 +92,8 @@
         this.el_list_cont = this.el_container.find(".list_container");
         this.el_XHRCounter = this.el_container.find(".XHRCounter");
         this.el_loader = this.el_container.find(".loader");
-        this.initial_loader = this.el_container.find(".initial_loader");
+        this.el_clear = this.el_container.find(".cancel_button");
+        this.el_initial_loader = this.el_container.find(".initial_loader");
         this.el.parent().css('position', 'relative').append(this.el_container);
       },
       registerEventHandlers: function() {
@@ -111,6 +119,11 @@
         }, this));
         this.el_container.on('click', __bind(function(e) {
           this.do_not_hide_me = true;
+        }, this));
+        this.el_clear.on('click', __bind(function(e) {
+          e.stopPropagation();
+          this.clearSelectItem();
+          return false;
         }, this));
         $("html").on('click', __bind(function(e) {
           if (this.do_not_hide_me === true) {
@@ -399,8 +412,13 @@
           }, this));
         }
       },
+      clearSelectItem: function() {
+        this.el.html('<option value="' + this.options.default_value + '">' + this.options.default_text + '</option>');
+        this.el_clear.hide();
+      },
       activateTheSelectedItem: function() {
-        this.el.html('<option value="' + this.selected_item.data("value") + '">' + this.selected_item.text() + '</option>');
+        this.el.html('<option value="' + this.selected_item.data("value") + '" selected="selected">   ' + this.selected_item.text() + '</option>');
+        this.el_clear.show();
         this.hide();
         return false;
       },
@@ -460,7 +478,7 @@
         this.local_db_timestamp = parseInt(this.local_db_timestamp, 10);
       }
       if (this.local_db_timestamp === false || (current_timestamp - this.local_db_timestamp) > this.options.localCacheTimeout) {
-        this.initial_loader.show();
+        this.el_initial_loader.show();
         this.el_top.addClass("disabled");
         try {
           $.ajax({
@@ -477,7 +495,7 @@
               }
               this.__dbSet(this.options.data_name + "_data", new_data);
               this.data = new_data;
-              this.initial_loader.fadeOut();
+              this.el_initial_loader.fadeOut();
               this.el_top.removeClass("disabled");
             }, this),
             error: __bind(function(a, b, c) {

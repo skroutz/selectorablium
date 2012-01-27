@@ -10,6 +10,7 @@
   .top{
     box-sizing: border-box;
     -moz-box-sizing: border-box;
+    position:relative;
     .initial_loader{
       width:100%;
       height:100%;
@@ -22,6 +23,26 @@
       padding: 6px 0 0 14px;
       border-radius: 2px;
       color: white;
+    }
+    .cancel_button{
+      display:none;
+      position:absolute;
+      float:none;
+      top:6px;
+      right:20px;
+      padding:0px;
+      margin:0px;
+      background: #eee url("../images/chosen-sprite.png") no-repeat -47px 1px;
+      width: 16px;
+      height: 16px;
+      border: 1px solid rgb(170, 170, 170);
+      border-radius: 2px;
+      &:hover{
+        background: #fff url("../images/chosen-sprite.png") no-repeat -47px -10px;
+      }
+      &:active{
+        border-color: #333;
+      }
     }
   }
   .inner_container{
@@ -37,14 +58,28 @@
       padding:0px;
       margin:5px;
       position:relative;
+      background-color: #fff;
+      border-radius: 3px;
       input{
         width       : 100%;
         margin      : 0px;
-        padding     : 4px;
+        padding     : 4px 23px 4px 4px;
         line-height : 18px;      
         height      : 18px + 8px;
         box-sizing  : border-box;
         -moz-box-sizing: border-box;
+        background-color: transparent;
+        z-index: 1;
+        position: relative;
+      }
+      .input_icon{
+        width:13px;
+        height:13px;
+        position:absolute;
+        z-index: 0;
+        top:7px;
+        right:5px;
+        background: url('../images/chosen-sprite.png') no-repeat -44px -27px;
       }
       .loader{
         background: transparent url("../images/ajax-loader.gif") no-repeat top left;

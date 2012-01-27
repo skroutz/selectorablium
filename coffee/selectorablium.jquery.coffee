@@ -11,40 +11,47 @@
   Selectorablium = (element, options) ->
     return false unless $.fn.toolsfreak
     return false unless $.fn.storagefreak
-    @timers_func        = $.fn.toolsfreak.timers_handler()
-    @el                 = $(element).attr("autocomplete", "off")
-    @options            = $.extend {}, defaults, options
+    @timers_func           = $.fn.toolsfreak.timers_handler()
+    @el                    = $(element).attr("autocomplete", "off")
+    @options               = $.extend {}, defaults, options
 
     if !@options.app_name or @options.app_name is ""
       @__error 'objectCreation', "no app_name specified on params"
       return false
-    @options.url = @el.data "url"
-    @options.query_string = @el.data "query"
-    @options.data_name = @el.data "name"
     
-    @db                 = null
-    @db_prefix          = "skr." + @options.app_name + "." + pluginName + "."
+    @options.url           = @el.data "url"
+    @options.query_string  = @el.data "query"
+    @options.data_name     = @el.data "name"
     
-    @el_container       = null
-    @el_top             = null
-    @el_inner_container = null
-    @el_input           = null
-    @el_list_cont       = null
-    @el_XHRCounter      = null
-    @el_loader          = null
-    @initial_loader     = null
-
-    @query              = ""
-    @queryLength        = ""
+    @options.default_value = @el.data "default_value" 
+    @options.default_value = @options.default_value || -1
+    @options.default_text  = @el.data "default_text"  
+    @options.default_text  = @options.default_text  || "Please select an option"
     
-    @data               = null
-    @result_list        = null
-    @selected_item      = null
-    @items_list         = null
-    @result_to_prepend  = []
-    @no_results         = false
-    @do_not_hide_me     = false
-    @got_focused        = false
+    @db                    = null
+    @db_prefix             = "skr." + @options.app_name + "." + pluginName + "."
+    
+    @el_container          = null
+    @el_top                = null
+    @el_inner_container    = null
+    @el_input              = null
+    @el_list_cont          = null
+    @el_XHRCounter         = null
+    @el_loader             = null
+    @el_clear              = null
+    @el_initial_loader     = null
+    
+    @query                 = ""
+    @queryLength           = ""
+    
+    @data                  = null
+    @result_list           = null
+    @selected_item         = null
+    @items_list            = null
+    @result_to_prepend     = []
+    @no_results            = false
+    @do_not_hide_me        = false
+    @got_focused           = false
     
     @init()
     
@@ -72,10 +79,12 @@
       
       HTML_string  = '<div class="top">'
       HTML_string += '<div class="initial_loader">Loading initial data...</div>'
+      HTML_string += '<button class="cancel_button"></button>'
       HTML_string += '</div>'
       HTML_string += '<div class="inner_container clearfix">'
       HTML_string += '<form>'
       HTML_string += '<input name="var_name">'
+      HTML_string += '<span class="input_icon"></span>'
       HTML_string += '<div class="loader"></div>'
       HTML_string += '<div class="XHRCounter"></div>'
       HTML_string += '</form>'
@@ -89,7 +98,8 @@
       @el_list_cont       = @el_container.find(".list_container")
       @el_XHRCounter      = @el_container.find(".XHRCounter")
       @el_loader          = @el_container.find(".loader")
-      @initial_loader     = @el_container.find(".initial_loader")
+      @el_clear           = @el_container.find(".cancel_button")
+      @el_initial_loader  = @el_container.find(".initial_loader")
       
       
       @el.parent().css('position','relative').append @el_container
@@ -121,6 +131,11 @@
         @do_not_hide_me = true
         return
       
+      @el_clear.on 'click', (e)=>
+        e.stopPropagation()
+        @clearSelectItem()
+        return false
+
       $("html").on 'click', (e)=>
         if @do_not_hide_me is true
           @do_not_hide_me = false
@@ -378,8 +393,14 @@
         
       return
     
+    clearSelectItem: () ->
+      @el.html('<option value="' + @options.default_value + '">' + @options.default_text + '</option>')
+      @el_clear.hide()
+      return
+
     activateTheSelectedItem: () ->
-      @el.html('<option value="' + @selected_item.data("value") + '">' + @selected_item.text() + '</option>')
+      @el.html('<option value="' + @selected_item.data("value") + '" selected="selected">   ' + @selected_item.text() + '</option>')
+      @el_clear.show()
       @hide()
       return false
 
@@ -441,7 +462,7 @@
       @local_db_timestamp = parseInt @local_db_timestamp, 10
     
     if @local_db_timestamp is false or (current_timestamp - @local_db_timestamp) > @options.localCacheTimeout
-      @initial_loader.show()
+      @el_initial_loader.show()
       @el_top.addClass "disabled"
       try
         $.ajax
@@ -457,7 +478,7 @@
             @__dbSet @options.data_name + "_data", new_data
             @data = new_data
             
-            @initial_loader.fadeOut()
+            @el_initial_loader.fadeOut()
             @el_top.removeClass "disabled"
             return
           error: (a,b,c)=>
