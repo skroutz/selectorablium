@@ -335,10 +335,9 @@
         this.result_to_prepend = [];
       },
       makeSuggestionListFor: function(query) {
-        var count, id, lowerQuery, name, result_list, _ref;
+        var id, lowerQuery, name, result_list, _ref;
         result_list = [];
         lowerQuery = query.toLowerCase();
-        count = 0;
         _ref = this.data;
         for (id in _ref) {
           name = _ref[id];
@@ -486,7 +485,7 @@
     Selectorablium.initiateLocalData = function() {
       var current_timestamp;
       current_timestamp = new Date().getTime();
-      this.local_db_timestamp = this.__dbGet("timestamp");
+      this.local_db_timestamp = this.__dbGet(this.options.data_name + "_timestamp");
       if (this.local_db_timestamp !== false) {
         this.local_db_timestamp = parseInt(this.local_db_timestamp, 10);
       }
@@ -499,17 +498,25 @@
             type: "get",
             dataType: "json",
             success: __bind(function(data) {
-              var index, new_data, value;
-              this.__dbSet("timestamp", new Date().getTime());
+              var index, length, new_data, result, value;
               new_data = {};
+              result = {};
+              length = 0;
               for (index in data) {
                 value = data[index];
                 new_data[value.id] = value.name;
+                length += 1;
               }
-              this.__dbSet(this.options.data_name + "_data", new_data);
-              this.data = new_data;
-              this.el_initial_loader.fadeOut();
-              this.el_top.removeClass("disabled");
+              if (this.__dbSet(this.options.data_name + "_data", new_data) === false) {
+                this.__error('initiateLocalData', "error storing '" + this.options.data_name + "' initial data to localStorage");
+              } else {
+                if (this.__dbSet(this.options.data_name + "_timestamp", new Date().getTime()) === false) {
+                  this.__error('initiateLocalData', "error storing timestamp" + this.options.app_name);
+                }
+                this.data = new_data;
+                this.el_initial_loader.fadeOut();
+                this.el_top.removeClass("disabled");
+              }
             }, this),
             error: __bind(function(a, b, c) {
               this.__error('initiateLocalData', "XHR error");

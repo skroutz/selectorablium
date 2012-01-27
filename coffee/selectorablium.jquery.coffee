@@ -227,6 +227,8 @@
         @el_loader.hide()
         @el_XHRCounter.hide()
       else
+        ##BENCHMARKING STUFF##
+          # @start_timestamp = new Date().getTime()
         query = @query
         @beginLocalSearchFor query
         if query.length >= @options.minCharsForRemoteSearch #and @query.indexOf(@last_invalid_query) is -1
@@ -330,11 +332,15 @@
     makeSuggestionListFor: (query) ->
       result_list = []
       lowerQuery = query.toLowerCase()
-      count = 0
+      ##BENCHMARKING STUFF##
+        # count = 0
       for id, name of @data
+        ##BENCHMARKING STUFF##
+          # count +=1
         ## TODO convert it to REXEXP.test
         result_list.push({id: id, name: name}) if name.toLowerCase().indexOf(lowerQuery) isnt -1
-      
+      ##BENCHMARKING STUFF##
+        # console.log "searched:" + count
       
       if result_list.length is 0
         @no_results = true
@@ -377,6 +383,10 @@
         @el_list_cont.append fragment
         @el_list_cont[0].innerHTML += ''
         
+        ##BENCHMARKING STUFF##
+          # @end_timestamp = new Date().getTime()
+          # console.log "ms for search and print:" + (parseInt(@end_timestamp,10) - parseInt(@start_timestamp,10))
+
         @items_list = @el_list_cont.find(".item")
 
         me = this
@@ -470,7 +480,7 @@
 
   Selectorablium.initiateLocalData = () ->
     current_timestamp = new Date().getTime()
-    @local_db_timestamp = @__dbGet "timestamp"
+    @local_db_timestamp = @__dbGet @options.data_name + "_timestamp"
     
     if @local_db_timestamp isnt false
       @local_db_timestamp = parseInt @local_db_timestamp, 10
@@ -484,16 +494,31 @@
           type: "get"
           dataType: "json"
           success: (data)=>
-            @__dbSet "timestamp", new Date().getTime()
             new_data = {}
+            result = {}
+            
+            length = 0
             for index, value of data
               new_data[value.id] = value.name
+              length += 1
             
-            @__dbSet @options.data_name + "_data", new_data
-            @data = new_data
-            
-            @el_initial_loader.fadeOut()
-            @el_top.removeClass "disabled"
+            ##BENCHMARKING CODE##
+              # for iteration in [1..150000]
+              #   # console.log iteration, iteration % length
+              #   result[iteration] = new_data[iteration % length]
+              #   i = iteration
+              # console.log "setted" + @options.data_name + ":" + i
+              ##change below new_data to result##
+
+            if @__dbSet(@options.data_name + "_data", new_data) is false
+              @__error 'initiateLocalData', "error storing '" + @options.data_name + "' initial data to localStorage"
+            else
+              if @__dbSet(@options.data_name + "_timestamp", new Date().getTime()) is false
+                @__error 'initiateLocalData', "error storing timestamp" + @options.app_name
+              
+              @data = new_data
+              @el_initial_loader.fadeOut()
+              @el_top.removeClass "disabled"
             return
           error: (a,b,c)=>
             @__error 'initiateLocalData', "XHR error"

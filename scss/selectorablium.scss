@@ -46,7 +46,7 @@
         background-color: #fff;
       }
       &:active{
-        box-shadow: 0 1px 3px black inset;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4) inset;
         background-color: rgba(0, 0, 0, .3);
         color: white;
       }
