@@ -10,6 +10,7 @@
   .top{
     box-sizing: border-box;
     -moz-box-sizing: border-box;
+    border: 1px solid transparent;
     position:relative;
     cursor:pointer;
     .initial_loader{
@@ -26,23 +27,26 @@
       color: white;
     }
     .cancel_button{
+      box-sizing: border-box;
+      -moz-box-sizing: border-box;
       display:block;
       width:46px;
       position:absolute;
       float:none;
-      top:0px;
-      right:-46px;
+      top:-1px;
+      right:-47px;
       padding:0px;
       margin:0px;
       background-color: #eee;
       color: #333;
-      border: 1px solid rgb(170, 170, 170);
+      border: 1px solid rgb(204, 204, 204);
+      border-left:0px none;
       border-radius: 0 4px 4px 0;
       &:hover{
         background-color: #fff;
       }
       &:active{
-        border-color: #333;
+        background-color: rgb(221, 221, 221);
       }
     }
   }
@@ -157,7 +161,17 @@
     }
   }
   
-
+  &.active{
+    .top{
+      border: 1px solid rgb(170, 170, 170);
+      border-radius: 4px 0 0 4px;
+      .cancel_button{
+        border: 1px solid rgb(170, 170, 170);
+        border-left:0px none;
+        border-radius: 0 4px 4px 0;
+      }
+    }
+  }
 
   .clearfix { 
     zoom: 1; 

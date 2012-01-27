@@ -105,6 +105,8 @@
             this.hide();
           } else {
             if (this.el_top.hasClass("disabled") === false) {
+              this.el_container.addClass("active");
+              this.el.addClass("active");
               this.el_inner_container.slideDown(200);
               this.el_input.focus();
             }
@@ -115,6 +117,8 @@
             this.hide();
           } else {
             if (this.el_top.hasClass("disabled") === false) {
+              this.el_container.addClass("active");
+              this.el.addClass("active");
               this.el_inner_container.slideDown(200);
               this.el_input.focus();
             }
@@ -150,6 +154,8 @@
       },
       hide: function() {
         if (this.el_inner_container.is(":visible")) {
+          this.el_container.removeClass("active");
+          this.el.removeClass("active");
           this.el_inner_container.slideUp(200);
           this.el_input.val("");
           this.el_list_cont.empty();

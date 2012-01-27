@@ -112,7 +112,10 @@
         if @el_inner_container.is(":visible")
           @hide()
         else 
+          #WAIT FOR INITIAL DATA TO LOAD
           if @el_top.hasClass("disabled") is false
+            @el_container.addClass("active")
+            @el.addClass("active")
             @el_inner_container.slideDown(200)
             @el_input.focus()
 
@@ -122,7 +125,10 @@
         if @el_inner_container.is(":visible")
           @hide()
         else 
+          #WAIT FOR INITIAL DATA TO LOAD
           if @el_top.hasClass("disabled") is false
+            @el_container.addClass("active")
+            @el.addClass("active")
             @el_inner_container.slideDown(200)
             @el_input.focus()
 
@@ -158,6 +164,8 @@
     
     hide: ->
       if @el_inner_container.is(":visible")
+        @el_container.removeClass("active")
+        @el.removeClass("active")
         @el_inner_container.slideUp(200)
         @el_input.val("")
         @el_list_cont.empty()

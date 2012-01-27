@@ -10,6 +10,7 @@
   .selectorablium_cont .top {
     box-sizing: border-box;
     -moz-box-sizing: border-box;
+    border: 1px solid transparent;
     position: relative;
     cursor: pointer; }
     .selectorablium_cont .top .initial_loader {
@@ -25,22 +26,25 @@
       border-radius: 2px;
       color: white; }
     .selectorablium_cont .top .cancel_button {
+      box-sizing: border-box;
+      -moz-box-sizing: border-box;
       display: block;
       width: 46px;
       position: absolute;
       float: none;
-      top: 0px;
-      right: -46px;
+      top: -1px;
+      right: -47px;
       padding: 0px;
       margin: 0px;
       background-color: #eee;
       color: #333;
-      border: 1px solid #aaaaaa;
+      border: 1px solid #cccccc;
+      border-left: 0px none;
       border-radius: 0 4px 4px 0; }
       .selectorablium_cont .top .cancel_button:hover {
         background-color: #fff; }
       .selectorablium_cont .top .cancel_button:active {
-        border-color: #333; }
+        background-color: #dddddd; }
   .selectorablium_cont .inner_container {
     display: none;
     margin: 1px 0 0 0;
@@ -134,6 +138,13 @@
             text-decoration: underline; }
         .selectorablium_cont .inner_container .list_container .item .highlight, .selectorablium_cont .inner_container .list_container p .highlight {
           text-decoration: underline; }
+  .selectorablium_cont.active .top {
+    border: 1px solid #aaaaaa;
+    border-radius: 4px 0 0 4px; }
+    .selectorablium_cont.active .top .cancel_button {
+      border: 1px solid #aaaaaa;
+      border-left: 0px none;
+      border-radius: 0 4px 4px 0; }
   .selectorablium_cont .clearfix {
     zoom: 1; }
     .selectorablium_cont .clearfix:after {
