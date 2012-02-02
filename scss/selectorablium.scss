@@ -71,7 +71,7 @@
         width       : 100%;
         margin      : 0px;
         padding     : 4px 23px 4px 4px;
-        line-height : 18px;      
+        line-height : 18px;
         height      : 18px + 8px;
         box-sizing  : border-box;
         -moz-box-sizing: border-box;
@@ -113,10 +113,11 @@
       padding:0px;
       border-top: 1px solid #ccc;
       border-radius: 2px;
-      
+
       li{
         border-bottom: 1px solid #ccc;
         border-radius: 2px;
+        list-style: none;
         &:last-child{
           border-bottom: 0px none;
           .selected{
@@ -125,6 +126,7 @@
         }
         p{
           cursor:default;
+          margin: 0;
         }
       }
       .item, p{
@@ -162,7 +164,7 @@
       }
     }
   }
-  
+
   &.active{
     .top{
       border: 1px solid rgb(170, 170, 170);
@@ -175,8 +177,8 @@
     }
   }
 
-  .clearfix { 
-    zoom: 1; 
+  .clearfix {
+    zoom: 1;
     &:after{
       clear: both;
     }
