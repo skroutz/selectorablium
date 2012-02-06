@@ -10,7 +10,6 @@
     <script type="text/javascript" src="js/tools_freak.js"></script>
     <script type="text/javascript" src="js/storage_freak.js"></script>
     <script type="text/javascript" src="js/selectorablium.jquery.js"></script>
-    <script type="text/javascript" src="js/website.js"></script>
 
   </head>
   <body>
@@ -65,16 +64,14 @@
             $(this).data('selectorablium').resetSelectItem();
           });
         });
-        /*MANUALY SET VALUE FOR SELECT BY PASSING ID ONLY. 
-        IF IT DOESNT EXIST ON LOCALSTORAGE, IT RETURNS FALSE*/
-        window.a = $(".selectorablium:nth(0)").data("selectorablium");
+        
         /*SET UP THE CUSTOM SETTERS FOR THE SELECTORABLIUMS*/
         $("#eshop_setter").on('click', function(e) {
           e.stopPropagation();
           window.a = $(".selectorablium:nth(0)").data("selectorablium");
           window.a.setSelectItem({
-            value: 9999,
-            text: "niamaniaima"
+            value: 111,
+            text: "test1"
           });
           return false;
         });
@@ -83,8 +80,8 @@
           e.stopPropagation();
           my_obj = $(".selectorablium:nth(1)").data("selectorablium");
           my_obj.setSelectItem({
-            value: 123123123,
-            text: "ZZZZZZZZ"
+            value: 123,
+            text: "test2"
           });
           return false;
         });

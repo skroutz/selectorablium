@@ -6,7 +6,13 @@ SKROUTZ SELECTORABLIUM
 On plugin load, it loads via XHR the initial data and stores them into the localstorage.
 It then searches the localstorage, prints sorts, and highlights the results.
 
+You can select an item from the results either by clicking with the mouse or via naviagtion with the keyboard keys and pressing enter. 
+
+Tab navigation should work as if it wa a native element.
+
 If the length of the query is more than a threshold value, it makes an XHR and adds the new data (if any) to the local storage and then it displays them.
+
+Its search in case-insensitive as well as accent insensitive, regading the greek language.
 
 It is tested with more than 10.000 items stored in the localstorage, with the responce time while searching being < 50ms.
 
@@ -53,7 +59,7 @@ First of all, get the instance object:a
 
 
 
-##DATA NAMESPACING
+##LOCALSTORAGE NAMESPACING
 The namespacing scheme is designed so that multiple selectorablium groups can be present in the same page.
 
 It is implemented in the form of 
