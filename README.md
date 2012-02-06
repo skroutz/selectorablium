@@ -28,7 +28,8 @@ So in order for the plugin to load two things must be configured.
 * data-default_text = "string_text_for_the_default_and_reseted_option_element" ***(optional)***
 * data-selected_id = "string_id_for_preselected_option" ***(optional)***
 
-*example:* `<select class="selectorablium" name="customer_id" data-url="/company/customer" data-query="search" \ndata-name="customers" data-default_value="-1" data-default_text="choose an option"\n data-selected_id="22"></select>`
+*example:* `<select class="selectorablium" name="customer_id" data-url="/company/customer" data-query="search" `
+`data-name="customers" data-default_value="-1" data-default_text="choose an option" data-selected_id="22"></select>`
 
 ###2) Javascript invocation
 
