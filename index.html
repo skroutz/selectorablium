@@ -16,10 +16,6 @@
   <body>
     <form id="test_stuff" class="clearfix" target="" action="" method="get">
       <div class="input_cont">
-        <input type="text" name="nothing" value="dummy text input" />
-      </div>
-
-      <div class="input_cont">
         <select
           class="selectorablium"
           data-url="/earth/shops.json"
@@ -52,11 +48,48 @@
         <button id="reset_button" type="reset" class="btn danger">Reset</button>
       </div>
     </form>
+    
     <a class="btn info" href="#" id="eshop_setter">Set Custom Eshop</a>
     <a class="btn info" href="#" id="manufacturer_setter">Set Custom Eshop Manufacturer</a>
-    <h2>Notes</h2>
-    <p>I made some benchmarking and i found out that i coulddn't insert more than 10400(+-) data entries in the local storage.</p>
-    <p>I inserted all that data for only one selectorablium plugin and the time it took to search all of them entries and print the results was less than 50ms</p>
-    <p>For less than 10000 entries, it takes less than 10 ms to search and print the results</p>
+    
+    <script>
+      $(function() {
+        /*SELECTORABLIUM INVOCATION*/    
+        $("select.selectorablium").Selectorablium({ app_name: "selectorablium_test" });
+
+        /*SET THE ONRESET EVENT HANDLERS FOR THE SELECTORABLIUMS*/
+        $("[type=reset]").on('click', function() {
+          var my_selectorabliums;
+          my_selectorabliums = $(this).parents('form').find('.selectorablium');
+          my_selectorabliums.each(function() {
+            $(this).data('selectorablium').resetSelectItem();
+          });
+        });
+        /*MANUALY SET VALUE FOR SELECT BY PASSING ID ONLY. 
+        IF IT DOESNT EXIST ON LOCALSTORAGE, IT RETURNS FALSE*/
+        window.a = $(".selectorablium:nth(0)").data("selectorablium");
+        /*SET UP THE CUSTOM SETTERS FOR THE SELECTORABLIUMS*/
+        $("#eshop_setter").on('click', function(e) {
+          e.stopPropagation();
+          window.a = $(".selectorablium:nth(0)").data("selectorablium");
+          window.a.setSelectItem({
+            value: 9999,
+            text: "niamaniaima"
+          });
+          return false;
+        });
+        $("#manufacturer_setter").on('click', function(e) {
+          var my_obj;
+          e.stopPropagation();
+          my_obj = $(".selectorablium:nth(1)").data("selectorablium");
+          my_obj.setSelectItem({
+            value: 123123123,
+            text: "ZZZZZZZZ"
+          });
+          return false;
+        });
+      });
+    </script>
+
   </body>
 </html>

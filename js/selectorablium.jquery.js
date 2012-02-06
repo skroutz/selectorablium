@@ -511,7 +511,7 @@
         this.hide();
         return true;
       },
-      refreshMyDatas: function() {
+      refreshMyData: function() {
         if ((this.data = this.__dbGet(this.options.data_name + "_data")) !== false) {
           return true;
         } else {
