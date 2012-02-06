@@ -77,7 +77,7 @@
       
       HTML_string  = '<div class="top">'
       HTML_string += '<div class="initial_loader">Loading initial data...</div>'
-      HTML_string += '<button class="cancel_button">Clear</button>'
+      HTML_string += '<a class="cancel_button">Clear</a>'
       HTML_string += '</div>'
       HTML_string += '<div class="inner_container clearfix">'
       HTML_string += '<form>'
@@ -96,7 +96,10 @@
       @el_list_cont       = @el_container.find(".list_container")
       @el_XHRCounter      = @el_container.find(".XHRCounter")
       @el_loader          = @el_container.find(".loader")
-      @el_clear           = @el_container.find(".cancel_button").css 'height', @el.outerHeight(true)
+      @el_clear           = @el_container.find(".cancel_button").css 
+        'height'     : @el.outerHeight(true) + "px",
+        'lineHeight' : @el.outerHeight(true) + "px"
+
       @el_initial_loader  = @el_container.find(".initial_loader")
       
       
@@ -139,6 +142,10 @@
         return
       
       @el_clear.on 'click', (e)=>
+        console.log e
+        console.log e.target
+        console.log e.relatedTarget
+
         e.stopPropagation()
         @resetSelectItem()
         return false

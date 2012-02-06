@@ -40,7 +40,8 @@
       color: #333;
       border: 1px solid #cccccc;
       border-left: 0px none;
-      border-radius: 0 4px 4px 0; }
+      border-radius: 0 4px 4px 0;
+      text-align: center; }
       .selectorablium_cont .top .cancel_button:hover {
         background-color: #fff; }
       .selectorablium_cont .top .cancel_button:active {

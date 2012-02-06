@@ -72,7 +72,7 @@
         });
         HTML_string = '<div class="top">';
         HTML_string += '<div class="initial_loader">Loading initial data...</div>';
-        HTML_string += '<button class="cancel_button">Clear</button>';
+        HTML_string += '<a class="cancel_button">Clear</a>';
         HTML_string += '</div>';
         HTML_string += '<div class="inner_container clearfix">';
         HTML_string += '<form>';
@@ -90,7 +90,10 @@
         this.el_list_cont = this.el_container.find(".list_container");
         this.el_XHRCounter = this.el_container.find(".XHRCounter");
         this.el_loader = this.el_container.find(".loader");
-        this.el_clear = this.el_container.find(".cancel_button").css('height', this.el.outerHeight(true));
+        this.el_clear = this.el_container.find(".cancel_button").css({
+          'height': this.el.outerHeight(true) + "px",
+          'lineHeight': this.el.outerHeight(true) + "px"
+        });
         this.el_initial_loader = this.el_container.find(".initial_loader");
         this.el.parent().css('position', 'relative').append(this.el_container);
         this.el.html('<option value="' + this.options.default_value + '">' + this.options.default_text + '</option>');
@@ -128,6 +131,9 @@
           this.do_not_hide_me = true;
         }, this));
         this.el_clear.on('click', __bind(function(e) {
+          console.log(e);
+          console.log(e.target);
+          console.log(e.relatedTarget);
           e.stopPropagation();
           this.resetSelectItem();
           return false;
