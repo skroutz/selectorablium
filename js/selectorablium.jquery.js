@@ -8,7 +8,8 @@
       localCacheTimeout: 7 * 24 * 60 * 60 * 1000,
       XHRTimeout: 650,
       maxResultsNum: 10,
-      maxNewResultsNum: 5
+      maxNewResultsNum: 5,
+      list_of_replacable_chars: [["ά", "α"], ['έ', 'ε'], ['ή', 'η'], ['ί', 'ι'], ['ό', 'ο'], ['ύ', 'υ'], ['ώ', 'ω']]
     };
     Selectorablium = function(element, options) {
       if (!$.fn.toolsfreak) {
@@ -243,6 +244,10 @@
               this.el_loader.show();
               this.beginRemoteSearchFor(query);
             }, this), this.options.XHRTimeout, "RemoteSearchTimeout");
+          } else {
+            this.timers_func.end("RemoteSearchTimeout");
+            this.el_loader.hide();
+            this.el_XHRCounter.hide();
           }
         }
         return false;
@@ -338,14 +343,25 @@
         this.highlightTextAndItems(new_items);
         this.result_to_prepend = [];
       },
+      removeAccents: function(string) {
+        var index, new_string, value, _ref;
+        new_string = string;
+        _ref = this.options.list_of_replacable_chars;
+        for (index in _ref) {
+          value = _ref[index];
+          new_string = new_string.replace(value[0], value[1]);
+        }
+        return new_string;
+      },
       makeSuggestionListFor: function(query) {
-        var id, lowerQuery, name, result_list, _ref;
+        var canonical_name, canonical_query, id, name, result_list, _ref;
         result_list = [];
-        lowerQuery = query.toLowerCase();
+        canonical_query = this.removeAccents(query.toLowerCase());
         _ref = this.data;
         for (id in _ref) {
           name = _ref[id];
-          if (name.toLowerCase().indexOf(lowerQuery) !== -1) {
+          canonical_name = this.removeAccents(name.toLowerCase());
+          if (canonical_name.indexOf(canonical_query) !== -1) {
             result_list.push({
               id: id,
               name: name
@@ -415,11 +431,20 @@
         if (this.query !== "") {
           item_to_highlight = items || this.items_list;
           item_to_highlight.each(__bind(function(index, element) {
-            var item_name, regEXP;
+            var item_name, new_string, regEXP, value, _ref;
             item_name = $(element).html();
             if (this.query !== "") {
-              regEXP = new RegExp("(" + this.query + ")", "ig");
+              new_string = this.query;
+              _ref = this.options.list_of_replacable_chars;
+              for (index in _ref) {
+                value = _ref[index];
+                regEXP = new RegExp(value[1], "ig");
+                new_string = new_string.replace(regEXP, "(?:" + value[0] + "|" + value[1] + ")");
+                delete regEXP;
+              }
+              regEXP = new RegExp("(" + new_string + ")", "ig");
               item_name = item_name.replace(regEXP, "<span class='highlight'>$1</span>");
+              delete regEXP;
             }
             $(element).html(item_name);
           }, this));

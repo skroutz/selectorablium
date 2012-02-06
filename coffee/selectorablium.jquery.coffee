@@ -7,6 +7,15 @@
     XHRTimeout                 : 650 #milliseconds
     maxResultsNum              : 10
     maxNewResultsNum           : 5
+    list_of_replacable_chars   : [
+        ["ά", "α"],
+        ['έ', 'ε'],
+        ['ή', 'η'],
+        ['ί', 'ι'],
+        ['ό', 'ο'],
+        ['ύ', 'υ'],
+        ['ώ', 'ω']
+      ]
   
   Selectorablium = (element, options) ->
     return false unless $.fn.toolsfreak
@@ -243,6 +252,10 @@
               return
             , @options.XHRTimeout
             ,"RemoteSearchTimeout"
+        else
+          @timers_func.end("RemoteSearchTimeout")
+          @el_loader.hide()
+          @el_XHRCounter.hide()
             
       return false
     
@@ -333,16 +346,24 @@
       @result_to_prepend = []
       return
     
+    removeAccents: (string) ->
+      new_string = string
+      for index, value of @options.list_of_replacable_chars
+        new_string = new_string.replace(value[0],value[1])
+
+      return new_string
+
     makeSuggestionListFor: (query) ->
       result_list = []
-      lowerQuery = query.toLowerCase()
+      canonical_query = @removeAccents query.toLowerCase()
       ##BENCHMARKING STUFF##
         # count = 0
       for id, name of @data
         ##BENCHMARKING STUFF##
           # count +=1
         ## TODO convert it to REXEXP.test
-        result_list.push({id: id, name: name}) if name.toLowerCase().indexOf(lowerQuery) isnt -1
+        canonical_name = @removeAccents name.toLowerCase()
+        result_list.push({id: id, name: name}) if canonical_name.indexOf(canonical_query) isnt -1
       ##BENCHMARKING STUFF##
         # console.log "searched:" + count
       
@@ -410,8 +431,16 @@
         item_to_highlight.each (index, element) => 
           item_name = $(element).html()
           if @query isnt ""
-            regEXP = new RegExp "(" + @query + ")", "ig"
+
+            new_string = @query
+            for index, value of @options.list_of_replacable_chars
+              regEXP = new RegExp value[1], "ig"
+              new_string = new_string.replace regEXP, "(?:" + value[0] + "|" + value[1] + ")"
+              delete regEXP
+            
+            regEXP = new RegExp "(" + new_string + ")", "ig"
             item_name = item_name.replace(regEXP, "<span class='highlight'>$1</span>")
+            delete regEXP
           $(element).html(item_name)
           return         
         
@@ -470,13 +499,13 @@
       @el.html('<option value="' + value + '" selected="selected">   ' + text + '</option>')
       @hide()
       return true
+    
     refreshData: ->
       if (@data = @__dbGet @options.data_name + "_data") isnt false
         return true
       else 
         return false
       
-
     showPreSelectedItem: ->
       if @options.selected_id
         @setSelectItem @options.selected_id, "preselected"
