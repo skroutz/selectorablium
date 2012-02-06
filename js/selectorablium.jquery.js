@@ -482,6 +482,13 @@
         this.hide();
         return true;
       },
+      refreshData: function() {
+        if ((this.data = this.__dbGet(this.options.data_name + "_data")) !== false) {
+          return true;
+        } else {
+          return false;
+        }
+      },
       showPreSelectedItem: function() {
         if (this.options.selected_id) {
           this.setSelectItem(this.options.selected_id, "preselected");

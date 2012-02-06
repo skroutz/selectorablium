@@ -470,6 +470,12 @@
       @el.html('<option value="' + value + '" selected="selected">   ' + text + '</option>')
       @hide()
       return true
+    refreshData: ->
+      if (@data = @__dbGet @options.data_name + "_data") isnt false
+        return true
+      else 
+        return false
+      
 
     showPreSelectedItem: ->
       if @options.selected_id
