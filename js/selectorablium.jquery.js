@@ -29,6 +29,7 @@
       this.options.data_name = this.el.data("name");
       this.options.default_value = this.el.data("default_value" || 0);
       this.options.default_text = this.el.data("default_text" || "Please select an option");
+      this.options.selected_id = this.el.data("selected_id" || null);
       this.db = null;
       this.db_prefix = "skr." + this.options.app_name + "." + pluginName + ".";
       this.el_container = null;
@@ -452,8 +453,9 @@
         index = custom_index % count;
         this.selectThisItem(this.items_list.filter(".item:nth(" + index + ")"));
       },
-      setSelectItem: function(params, outer_callback) {
-        var text, value;
+      setSelectItem: function(params, type) {
+        var my_type, text, value;
+        my_type = type || "refresh";
         if (typeof params === 'object') {
           value = params.value;
           text = params.text;
@@ -463,7 +465,7 @@
             text = this.data[params];
           } else {
             if (Selectorablium.makeWholeDumpXHR.call(this, {
-              type: "refresh"
+              type: my_type
             }) === true) {
               if (this.data && this.data[params]) {
                 value = params;
@@ -479,6 +481,11 @@
         this.el.html('<option value="' + value + '" selected="selected">   ' + text + '</option>');
         this.hide();
         return true;
+      },
+      showPreSelectedItem: function() {
+        if (this.options.selected_id) {
+          this.setSelectItem(this.options.selected_id, "preselected");
+        }
       },
       __dbGet: function(name) {
         return this.db.get(this.db_prefix + name);
@@ -520,6 +527,10 @@
         type = "refresh";
         my_async = false;
         return_value = false;
+      } else if (params && params.type && params.type === "preselected") {
+        error_string_where = 'XHRForPreselectedItem';
+        type = "preselected";
+        my_async = true;
       }
       try {
         $.ajax({
@@ -547,6 +558,7 @@
               }
               this.data = new_data;
               if (type === "initial") {
+                this.showPreSelectedItem();
                 this.el_initial_loader.fadeOut();
                 this.el_top.removeClass("disabled");
               }
@@ -581,6 +593,7 @@
         });
       } else {
         this.data = this.__dbGet(this.options.data_name + "_data");
+        this.showPreSelectedItem();
       }
     };
     $.fn.Selectorablium = function(options) {

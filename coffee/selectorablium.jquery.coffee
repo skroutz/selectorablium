@@ -23,8 +23,9 @@
     @options.query_string  = @el.data "query"
     @options.data_name     = @el.data "name"
     
-    @options.default_value = @el.data "default_value" || 0
-    @options.default_text  = @el.data "default_text" || "Please select an option"
+    @options.default_value = @el.data "default_value"    || 0
+    @options.default_text  = @el.data "default_text"     || "Please select an option"
+    @options.selected_id   = @el.data "selected_id" || null
 
     @db                    = null
     @db_prefix             = "skr." + @options.app_name + "." + pluginName + "."
@@ -447,7 +448,8 @@
       @selectThisItem @items_list.filter(".item:nth(" + index + ")")
       return
     
-    setSelectItem: (params, outer_callback) ->
+    setSelectItem: (params, type) ->
+      my_type = type || "refresh"
       if typeof params is 'object'
         value = params.value
         text  = params.text
@@ -456,7 +458,7 @@
           value = params
           text  = @data[params]
         else
-          if Selectorablium.makeWholeDumpXHR.call( this, {type: "refresh"} ) is true
+          if Selectorablium.makeWholeDumpXHR.call( this, {type: my_type} ) is true
             if @data and @data[params]
               value = params
               text  = @data[params]
@@ -468,6 +470,11 @@
       @el.html('<option value="' + value + '" selected="selected">   ' + text + '</option>')
       @hide()
       return true
+
+    showPreSelectedItem: ->
+      if @options.selected_id
+        @setSelectItem @options.selected_id, "preselected"
+      return
 
     __dbGet: (name)->
       return @db.get @db_prefix + name
@@ -508,7 +515,10 @@
       type               = "refresh"
       my_async           = false
       return_value       = false
-    
+    else if params and params.type and params.type is "preselected"
+      error_string_where = 'XHRForPreselectedItem'
+      type               = "preselected"
+      my_async           = true
 
     try
       $.ajax
@@ -543,6 +553,7 @@
             
             @data = new_data
             if type is "initial"
+              @showPreSelectedItem()
               @el_initial_loader.fadeOut()
               @el_top.removeClass "disabled"
             
@@ -575,7 +586,8 @@
 
     else
       @data = @__dbGet @options.data_name + "_data"
-    
+      @showPreSelectedItem()
+
     return
 
   $.fn.Selectorablium = (options) ->
