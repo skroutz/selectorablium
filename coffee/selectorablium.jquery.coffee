@@ -142,10 +142,6 @@
         return
       
       @el_clear.on 'click', (e)=>
-        console.log e
-        console.log e.target
-        console.log e.relatedTarget
-
         e.stopPropagation()
         @resetSelectItem()
         return false
@@ -451,10 +447,39 @@
       @selectThisItem @items_list.filter(".item:nth(" + index + ")")
       return
     
-    setSelectItem: (params) ->
-      @el.html('<option value="' + params.value + '" selected="selected">   ' + params.text + '</option>')
+    setSelectItem: (params, outer_callback) ->
+      
+      my_callback = ->
+        if @data and @data[params]
+          value = params
+          text  = @data[params]
+          @el.html('<option value="' + value + '" selected="selected">   ' + text + '</option>')
+          @hide()
+          outer_callback() if typeof outer_callback is "function"
+          return true
+        else
+          return false
+
+      if typeof params is 'object'
+        value = params.value
+        text  = params.text
+      else if typeof params is 'number'
+        if @data and @data[params]
+          value = params
+          text  = @data[params]
+        else
+          if Selectorablium.makeWholeDumpXHR.call( this, {type: "refresh", callback: my_callback} ) is true
+            if @data and @data[params]
+              value = params
+              text  = @data[params]
+            else
+              return false
+          else
+            return false
+
+      @el.html('<option value="' + value + '" selected="selected">   ' + text + '</option>')
       @hide()
-      return
+      return true
 
     __dbGet: (name)->
       return @db.get @db_prefix + name
@@ -485,6 +510,69 @@
       @__error 'getLocalDBObj', "could not get StorageFreak object"
       return null
 
+  Selectorablium.makeWholeDumpXHR = (params) ->
+    if params and params.type and params.type is "initial"
+      error_string_where = 'initiateLocalData'
+      type               = "initial"
+      my_async           = true
+    else if params and params.type and params.type is "refresh"
+      error_string_where = 'refreshXHRForSetSelectItem'
+      type               = "refresh"
+      my_async           = false
+    
+    return_value = false
+
+    try
+      $.ajax
+        url: @options.url
+        type: "get"
+        dataType: "json"
+        async: my_async
+        success: (data)=>
+          new_data = {}
+          result = {}
+          
+          length = 0
+          for index, value of data
+            new_data[value.id] = value.name
+            length += 1
+          
+          ##BENCHMARKING CODE##
+            # for iteration in [1..150000]
+            #   # console.log iteration, iteration % length
+            #   result[iteration] = new_data[iteration % length]
+            #   i = iteration
+            # console.log "setted" + @options.data_name + ":" + i
+            ##change below new_data to result##
+
+          if @__dbSet(@options.data_name + "_data", new_data) is false
+            @__error error_string_where, "error storing '" + @options.data_name + "' initial data to localStorage"
+            return false
+          else
+            if @__dbSet(@options.data_name + "_timestamp", new Date().getTime()) is false
+              @__error error_string_where, "error storing timestamp" + @options.app_name
+              return false
+            
+            @data = new_data
+            if type is "initial"
+              @el_initial_loader.fadeOut()
+              @el_top.removeClass "disabled"
+            # if callback
+            #   callback()
+          
+          return_value = true
+          return
+        error: (a,b,c)=>
+          @__error error_string_where, "XHR error"
+          return_value = false
+          return
+
+    catch e
+      @__error error_string_where, "catched XHR error"
+      return_value = false
+
+    return return_value
+
   Selectorablium.initiateLocalData = () ->
     current_timestamp = new Date().getTime()
     @local_db_timestamp = @__dbGet @options.data_name + "_timestamp"
@@ -495,44 +583,10 @@
     if @local_db_timestamp is false or (current_timestamp - @local_db_timestamp) > @options.localCacheTimeout
       @el_initial_loader.show()
       @el_top.addClass "disabled"
-      try
-        $.ajax
-          url: @options.url
-          type: "get"
-          dataType: "json"
-          success: (data)=>
-            new_data = {}
-            result = {}
-            
-            length = 0
-            for index, value of data
-              new_data[value.id] = value.name
-              length += 1
-            
-            ##BENCHMARKING CODE##
-              # for iteration in [1..150000]
-              #   # console.log iteration, iteration % length
-              #   result[iteration] = new_data[iteration % length]
-              #   i = iteration
-              # console.log "setted" + @options.data_name + ":" + i
-              ##change below new_data to result##
 
-            if @__dbSet(@options.data_name + "_data", new_data) is false
-              @__error 'initiateLocalData', "error storing '" + @options.data_name + "' initial data to localStorage"
-            else
-              if @__dbSet(@options.data_name + "_timestamp", new Date().getTime()) is false
-                @__error 'initiateLocalData', "error storing timestamp" + @options.app_name
-              
-              @data = new_data
-              @el_initial_loader.fadeOut()
-              @el_top.removeClass "disabled"
-            return
-          error: (a,b,c)=>
-            @__error 'initiateLocalData', "XHR error"
-            return
-      catch e
-        @__error 'initiateLocalData', "catched XHR error"
-        return false
+      #MAKE THE XHR
+      Selectorablium.makeWholeDumpXHR.call this, {type: "initial"}
+
     else
       @data = @__dbGet @options.data_name + "_data"
     

@@ -13,15 +13,22 @@ $(->
       return
     return
   
+  ###MANUALY SET VALUE FOR SELECT BY PASSING ID ONLY. 
+  IF IT DOESNT EXIST ON LOCALSTORAGE, IT RETURNS FALSE###
+  window.a = $(".selectorablium:nth(0)").data("selectorablium")
+  # a.setSelectItem(3)
+
+
   ###SET UP THE CUSTOM SETTERS FOR THE SELECTORABLIUMS###
   $("#eshop_setter").on 'click', (e)->
     e.stopPropagation()
-    my_obj = $(".selectorablium:nth(0)").data("selectorablium")
-    my_obj.setSelectItem
+    window.a = $(".selectorablium:nth(0)").data("selectorablium")
+    window.a.setSelectItem
       value: 9999
       text: "niamaniaima"
     
     return false
+
   $("#manufacturer_setter").on 'click', (e)->
     e.stopPropagation()
     my_obj = $(".selectorablium:nth(1)").data("selectorablium")

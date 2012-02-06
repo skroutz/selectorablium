@@ -131,9 +131,6 @@
           this.do_not_hide_me = true;
         }, this));
         this.el_clear.on('click', __bind(function(e) {
-          console.log(e);
-          console.log(e.target);
-          console.log(e.relatedTarget);
           e.stopPropagation();
           this.resetSelectItem();
           return false;
@@ -455,9 +452,49 @@
         index = custom_index % count;
         this.selectThisItem(this.items_list.filter(".item:nth(" + index + ")"));
       },
-      setSelectItem: function(params) {
-        this.el.html('<option value="' + params.value + '" selected="selected">   ' + params.text + '</option>');
+      setSelectItem: function(params, outer_callback) {
+        var my_callback, text, value;
+        my_callback = function() {
+          var text, value;
+          if (this.data && this.data[params]) {
+            value = params;
+            text = this.data[params];
+            this.el.html('<option value="' + value + '" selected="selected">   ' + text + '</option>');
+            this.hide();
+            if (typeof outer_callback === "function") {
+              outer_callback();
+            }
+            return true;
+          } else {
+            return false;
+          }
+        };
+        if (typeof params === 'object') {
+          value = params.value;
+          text = params.text;
+        } else if (typeof params === 'number') {
+          if (this.data && this.data[params]) {
+            value = params;
+            text = this.data[params];
+          } else {
+            if (Selectorablium.makeWholeDumpXHR.call(this, {
+              type: "refresh",
+              callback: my_callback
+            }) === true) {
+              if (this.data && this.data[params]) {
+                value = params;
+                text = this.data[params];
+              } else {
+                return false;
+              }
+            } else {
+              return false;
+            }
+          }
+        }
+        this.el.html('<option value="' + value + '" selected="selected">   ' + text + '</option>');
         this.hide();
+        return true;
       },
       __dbGet: function(name) {
         return this.db.get(this.db_prefix + name);
@@ -488,6 +525,61 @@
         return null;
       }
     };
+    Selectorablium.makeWholeDumpXHR = function(params) {
+      var error_string_where, my_async, return_value, type;
+      if (params && params.type && params.type === "initial") {
+        error_string_where = 'initiateLocalData';
+        type = "initial";
+        my_async = true;
+      } else if (params && params.type && params.type === "refresh") {
+        error_string_where = 'refreshXHRForSetSelectItem';
+        type = "refresh";
+        my_async = false;
+      }
+      return_value = false;
+      try {
+        $.ajax({
+          url: this.options.url,
+          type: "get",
+          dataType: "json",
+          async: my_async,
+          success: __bind(function(data) {
+            var index, length, new_data, result, value;
+            new_data = {};
+            result = {};
+            length = 0;
+            for (index in data) {
+              value = data[index];
+              new_data[value.id] = value.name;
+              length += 1;
+            }
+            if (this.__dbSet(this.options.data_name + "_data", new_data) === false) {
+              this.__error(error_string_where, "error storing '" + this.options.data_name + "' initial data to localStorage");
+              return false;
+            } else {
+              if (this.__dbSet(this.options.data_name + "_timestamp", new Date().getTime()) === false) {
+                this.__error(error_string_where, "error storing timestamp" + this.options.app_name);
+                return false;
+              }
+              this.data = new_data;
+              if (type === "initial") {
+                this.el_initial_loader.fadeOut();
+                this.el_top.removeClass("disabled");
+              }
+            }
+            return_value = true;
+          }, this),
+          error: __bind(function(a, b, c) {
+            this.__error(error_string_where, "XHR error");
+            return_value = false;
+          }, this)
+        });
+      } catch (e) {
+        this.__error(error_string_where, "catched XHR error");
+        return_value = false;
+      }
+      return return_value;
+    };
     Selectorablium.initiateLocalData = function() {
       var current_timestamp;
       current_timestamp = new Date().getTime();
@@ -498,40 +590,9 @@
       if (this.local_db_timestamp === false || (current_timestamp - this.local_db_timestamp) > this.options.localCacheTimeout) {
         this.el_initial_loader.show();
         this.el_top.addClass("disabled");
-        try {
-          $.ajax({
-            url: this.options.url,
-            type: "get",
-            dataType: "json",
-            success: __bind(function(data) {
-              var index, length, new_data, result, value;
-              new_data = {};
-              result = {};
-              length = 0;
-              for (index in data) {
-                value = data[index];
-                new_data[value.id] = value.name;
-                length += 1;
-              }
-              if (this.__dbSet(this.options.data_name + "_data", new_data) === false) {
-                this.__error('initiateLocalData', "error storing '" + this.options.data_name + "' initial data to localStorage");
-              } else {
-                if (this.__dbSet(this.options.data_name + "_timestamp", new Date().getTime()) === false) {
-                  this.__error('initiateLocalData', "error storing timestamp" + this.options.app_name);
-                }
-                this.data = new_data;
-                this.el_initial_loader.fadeOut();
-                this.el_top.removeClass("disabled");
-              }
-            }, this),
-            error: __bind(function(a, b, c) {
-              this.__error('initiateLocalData', "XHR error");
-            }, this)
-          });
-        } catch (e) {
-          this.__error('initiateLocalData', "catched XHR error");
-          return false;
-        }
+        Selectorablium.makeWholeDumpXHR.call(this, {
+          type: "initial"
+        });
       } else {
         this.data = this.__dbGet(this.options.data_name + "_data");
       }

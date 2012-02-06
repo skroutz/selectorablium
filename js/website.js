@@ -11,12 +11,14 @@
         $(this).data('selectorablium').resetSelectItem();
       });
     });
+    /*MANUALY SET VALUE FOR SELECT BY PASSING ID ONLY. 
+    IF IT DOESNT EXIST ON LOCALSTORAGE, IT RETURNS FALSE*/
+    window.a = $(".selectorablium:nth(0)").data("selectorablium");
     /*SET UP THE CUSTOM SETTERS FOR THE SELECTORABLIUMS*/
     $("#eshop_setter").on('click', function(e) {
-      var my_obj;
       e.stopPropagation();
-      my_obj = $(".selectorablium:nth(0)").data("selectorablium");
-      my_obj.setSelectItem({
+      window.a = $(".selectorablium:nth(0)").data("selectorablium");
+      window.a.setSelectItem({
         value: 9999,
         text: "niamaniaima"
       });
