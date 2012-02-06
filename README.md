@@ -52,4 +52,3 @@ They are grouped by the **app_name** during the javascript invocation and furthe
 Bill Trikalinos
 
 * [https://github.com/basiloungas](https://github.com/basiloungas)
-* [http://billtrik.gr](http://billtrik.gr)  
