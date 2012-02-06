@@ -453,22 +453,7 @@
         this.selectThisItem(this.items_list.filter(".item:nth(" + index + ")"));
       },
       setSelectItem: function(params, outer_callback) {
-        var my_callback, text, value;
-        my_callback = function() {
-          var text, value;
-          if (this.data && this.data[params]) {
-            value = params;
-            text = this.data[params];
-            this.el.html('<option value="' + value + '" selected="selected">   ' + text + '</option>');
-            this.hide();
-            if (typeof outer_callback === "function") {
-              outer_callback();
-            }
-            return true;
-          } else {
-            return false;
-          }
-        };
+        var text, value;
         if (typeof params === 'object') {
           value = params.value;
           text = params.text;
@@ -478,8 +463,7 @@
             text = this.data[params];
           } else {
             if (Selectorablium.makeWholeDumpXHR.call(this, {
-              type: "refresh",
-              callback: my_callback
+              type: "refresh"
             }) === true) {
               if (this.data && this.data[params]) {
                 value = params;
@@ -535,8 +519,8 @@
         error_string_where = 'refreshXHRForSetSelectItem';
         type = "refresh";
         my_async = false;
+        return_value = false;
       }
-      return_value = false;
       try {
         $.ajax({
           url: this.options.url,
@@ -568,10 +552,12 @@
               }
             }
             return_value = true;
+            return true;
           }, this),
           error: __bind(function(a, b, c) {
             this.__error(error_string_where, "XHR error");
             return_value = false;
+            return false;
           }, this)
         });
       } catch (e) {

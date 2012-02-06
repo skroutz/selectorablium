@@ -448,18 +448,6 @@
       return
     
     setSelectItem: (params, outer_callback) ->
-      
-      my_callback = ->
-        if @data and @data[params]
-          value = params
-          text  = @data[params]
-          @el.html('<option value="' + value + '" selected="selected">   ' + text + '</option>')
-          @hide()
-          outer_callback() if typeof outer_callback is "function"
-          return true
-        else
-          return false
-
       if typeof params is 'object'
         value = params.value
         text  = params.text
@@ -468,7 +456,7 @@
           value = params
           text  = @data[params]
         else
-          if Selectorablium.makeWholeDumpXHR.call( this, {type: "refresh", callback: my_callback} ) is true
+          if Selectorablium.makeWholeDumpXHR.call( this, {type: "refresh"} ) is true
             if @data and @data[params]
               value = params
               text  = @data[params]
@@ -519,8 +507,8 @@
       error_string_where = 'refreshXHRForSetSelectItem'
       type               = "refresh"
       my_async           = false
+      return_value       = false
     
-    return_value = false
 
     try
       $.ajax
@@ -557,15 +545,13 @@
             if type is "initial"
               @el_initial_loader.fadeOut()
               @el_top.removeClass "disabled"
-            # if callback
-            #   callback()
-          
+            
           return_value = true
-          return
+          return true
         error: (a,b,c)=>
           @__error error_string_where, "XHR error"
           return_value = false
-          return
+          return false
 
     catch e
       @__error error_string_where, "catched XHR error"
