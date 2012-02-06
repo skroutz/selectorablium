@@ -381,7 +381,7 @@
         });
         this.printSuggestionList(query);
       },
-      printSuggestionList: function(cached_result) {
+      printSuggestionList: function() {
         var a, fragment, item, li, me, p, _i, _len, _ref;
         this.el_list_cont.empty();
         fragment = document.createDocumentFragment();
@@ -390,7 +390,11 @@
           p = document.createElement("p");
           p.className = "empty-message";
           p.setAttribute("href", "#");
-          p.appendChild(document.createTextNode("loading..."));
+          if (this.query.length < this.options.minCharsForRemoteSearch) {
+            p.appendChild(document.createTextNode("No results found"));
+          } else {
+            p.appendChild(document.createTextNode("loading..."));
+          }
           li.appendChild(p);
           fragment.appendChild(li);
           this.el_list_cont.append(fragment);

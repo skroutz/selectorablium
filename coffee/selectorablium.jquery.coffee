@@ -381,7 +381,7 @@
       @printSuggestionList(query)
       return
     
-    printSuggestionList: (cached_result) ->
+    printSuggestionList: () ->
       @el_list_cont.empty()
 
       fragment = document.createDocumentFragment()
@@ -390,7 +390,10 @@
         p = document.createElement "p"
         p.className = "empty-message"
         p.setAttribute "href", "#"
-        p.appendChild document.createTextNode "loading..."
+        if @query.length < @options.minCharsForRemoteSearch
+          p.appendChild document.createTextNode "No results found"
+        else
+          p.appendChild document.createTextNode "loading..."
         li.appendChild p
         fragment.appendChild li
         @el_list_cont.append fragment
@@ -437,7 +440,7 @@
               regEXP = new RegExp value[1], "ig"
               new_string = new_string.replace regEXP, "(?:" + value[0] + "|" + value[1] + ")"
               delete regEXP
-            
+
             regEXP = new RegExp "(" + new_string + ")", "ig"
             item_name = item_name.replace(regEXP, "<span class='highlight'>$1</span>")
             delete regEXP
