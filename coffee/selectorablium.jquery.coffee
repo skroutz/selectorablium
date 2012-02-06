@@ -503,7 +503,7 @@
       @hide()
       return true
     
-    refreshData: ->
+    refreshMyDatas: ->
       if (@data = @__dbGet @options.data_name + "_data") isnt false
         return true
       else 

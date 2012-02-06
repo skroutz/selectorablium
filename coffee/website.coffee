@@ -17,7 +17,7 @@ $(->
   IF IT DOESNT EXIST ON LOCALSTORAGE, IT RETURNS FALSE###
   window.a = $(".selectorablium:nth(0)").data("selectorablium")
   # a.setSelectItem(3)
-
+  # a.refreshMyData()
 
   ###SET UP THE CUSTOM SETTERS FOR THE SELECTORABLIUMS###
   $("#eshop_setter").on 'click', (e)->
