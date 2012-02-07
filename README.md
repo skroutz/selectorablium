@@ -101,6 +101,12 @@ They are grouped by the **app_name** during the javascript invocation and furthe
 
 
 
+##CAKEFILE
+By running cake build you can build the coffee scripts as well as minify them. Furthermore a bundle version is created (+ minified) with all the required dependencies included. 
+**Required:** coffeescript, uglify-js *(on top of node with npm of course)*
+
+
+
 ##Authors
 Bill Trikalinos
 
