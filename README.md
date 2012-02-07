@@ -81,6 +81,7 @@ First of all, get the instance object:a
 * **instance_object.setSelectItem({value:9999, text:"text_for_custom_option"})** -> Manually set the selected option. If it is passed an object with 'value' and 'text' properties, it creates an option with the aforementioned data. Localstorage is not contacted at all.
 * **instance_object.setSelectItem(32)** -> Manually set the selected option. If it is passed a number, it searches the localstorage for an entry with the passed number as an ID. If none is found, it makes an XHR and completely refreshes the localstorage and then it searches again. If none is found it returns `false`. Otherwise it returns `true`. The XHR is made on synchronous mode so that it can return true or false depending on the XHR status.
 
+* **instance_object.appendNewItem({value:9999, text: "text_for_newly_appended_item"})** -> Append a new item to the inner data variable of the instanceand add it to the localstorage, thus making it instantly available to the selectorablium
 
 * **instance_object.refreshMyData()** -> Refresh the localstorage data stored inside the instance with the current localstorage values
 * **instance_object.resetSelectItem()** -> Reset the select to the default option
@@ -103,7 +104,8 @@ They are grouped by the **app_name** during the javascript invocation and furthe
 
 ##CAKEFILE
 By running cake build you can build the coffee scripts as well as minify them. Furthermore a bundle version is created (+ minified) with all the required dependencies included. 
-**Required:** coffeescript, uglify-js *(on top of node with npm of course)*
+
+**Required:** coffeescript, uglify-js *(on top of node with npm of course of course)*
 
 
 

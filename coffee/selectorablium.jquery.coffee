@@ -508,7 +508,20 @@
         return true
       else 
         return false
+    
+    appendNewItem: (obj) ->
+      @data[obj.value] = obj.name
       
+      if @__dbSet(@options.data_name + "_data", @data) is false
+        @__error 'appendNewItem', "error storing '" + @options.data_name + "' newly appended data"
+        return false
+      else
+        if @__dbSet(@options.data_name + "_timestamp", new Date().getTime()) is false
+          @__error 'appendNewItem', "error storing timestamp" + @options.app_name
+          return false
+
+      return true
+
     showPreSelectedItem: ->
       if @options.selected_id
         @setSelectItem @options.selected_id, "preselected"

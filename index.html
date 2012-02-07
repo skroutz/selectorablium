@@ -7,12 +7,12 @@
     <link href="css/style.css" rel="stylesheet" type="text/css" media="all" />
     
     <script type="text/javascript" src="js/jquery-1.7.1.min.js"></script>
+    <script type="text/javascript" src="js/tools_freak.jquery.js"></script>
+    <script type="text/javascript" src="js/storage_freak.jquery.js"></script>
+    <script type="text/javascript" src="js/selectorablium.jquery.js"></script>
     <!--
-    <script type="text/javascript" src="js/tools_freak.jquery.min.js"></script>
-    <script type="text/javascript" src="js/storage_freak.jquery.min.js"></script>
-    <script type="text/javascript" src="js/selectorablium.jquery.min.js"></script>
-    -->
     <script type="text/javascript" src="js/selectorablium.jquery.bundle.min.js"></script>
+    -->
 
   </head>
   <body>
@@ -67,12 +67,12 @@
             $(this).data('selectorablium').resetSelectItem();
           });
         });
-        
+        window.a = $(".selectorablium:nth(0)").data("selectorablium");
         /*SET UP THE CUSTOM SETTERS FOR THE SELECTORABLIUMS*/
         $("#eshop_setter").on('click', function(e) {
           e.stopPropagation();
-          window.a = $(".selectorablium:nth(0)").data("selectorablium");
-          window.a.setSelectItem({
+          a = $(".selectorablium:nth(0)").data("selectorablium");
+          a.setSelectItem({
             value: 111,
             text: "test1"
           });

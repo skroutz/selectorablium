@@ -518,6 +518,19 @@
           return false;
         }
       },
+      appendNewItem: function(obj) {
+        this.data[obj.value] = obj.name;
+        if (this.__dbSet(this.options.data_name + "_data", this.data) === false) {
+          this.__error('appendNewItem', "error storing '" + this.options.data_name + "' newly appended data");
+          return false;
+        } else {
+          if (this.__dbSet(this.options.data_name + "_timestamp", new Date().getTime()) === false) {
+            this.__error('appendNewItem', "error storing timestamp" + this.options.app_name);
+            return false;
+          }
+        }
+        return true;
+      },
       showPreSelectedItem: function() {
         if (this.options.selected_id) {
           this.setSelectItem(this.options.selected_id, "preselected");
