@@ -1,7 +1,7 @@
 SKROUTZ SELECTORABLIUM
 ====================
 
-***A "chosen.js" like jQuery plugin for a richer `<select>` experience***
+***A "chosen" like jQuery plugin for a richer `<select>` experience***
 
 On plugin load, it loads via XHR the initial data and stores them into the localstorage.
 It then searches the localstorage, prints sorts, and highlights the results.
