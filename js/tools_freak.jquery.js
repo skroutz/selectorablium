@@ -1,5 +1,5 @@
 (function() {
-  var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
+
   (function($, window, document) {
     var error_function, timers_handler, wresize;
     if (!String.prototype.trim) {
@@ -11,14 +11,10 @@
       Array.prototype.indexOf = function(searchElement) {
         "use strict";
         var k, len, n, t;
-        if (this === void 0 || this === null) {
-          throw new TypeError();
-        }
+        if (this === void 0 || this === null) throw new TypeError();
         t = Object(this);
         len = t.length >>> 0;
-        if (len === 0) {
-          return -1;
-        }
+        if (len === 0) return -1;
         n = 0;
         if (arguments.length > 0) {
           n = Number(arguments[1]);
@@ -28,20 +24,17 @@
             n = (n > 0 || -1) * Math.floor(Math.abs(n));
           }
         }
-        if (n >= len) {
-          return -1;
-        }
+        if (n >= len) return -1;
         k = (n >= 0 ? n : Math.max(len - Math.abs(n), 0));
         while (k < len) {
-          if (k in t && t[k] === searchElement) {
-            return k;
-          }
+          if (k in t && t[k] === searchElement) return k;
           k++;
         }
         return -1;
       };
     }
     wresize = function(callback) {
+      var _this = this;
       this.wresize_vars = {
         fired: false,
         width: 0
@@ -67,11 +60,9 @@
         }
         return true;
       };
-      this.handleWResize = __bind(function(e) {
-        if (this.resizeOnce() === true) {
-          return callback.apply(this, [e]);
-        }
-      }, this);
+      this.handleWResize = function(e) {
+        if (_this.resizeOnce() === true) return callback.apply(_this, [e]);
+      };
       $(window).resize(this.handleWResize);
     };
     timers_handler = function() {
@@ -80,16 +71,10 @@
       default_timer = "default_timer";
       endAndStart = function(callback, time, named_timer) {
         var timer;
-        if (callback === void 0) {
-          return false;
-        }
-        if (time === void 0) {
-          return false;
-        }
+        if (callback === void 0) return false;
+        if (time === void 0) return false;
         timer = default_timer;
-        if (named_timer !== void 0) {
-          timer = named_timer;
-        }
+        if (named_timer !== void 0) timer = named_timer;
         if (list_of_timers[timer] !== void 0) {
           window.clearTimeout(list_of_timers[timer]);
         }
@@ -101,12 +86,8 @@
       end = function(named_timer) {
         var timer;
         timer = default_timer;
-        if (named_timer !== void 0) {
-          timer = named_timer;
-        }
-        if (list_of_timers[timer] === void 0) {
-          return false;
-        }
+        if (named_timer !== void 0) timer = named_timer;
+        if (list_of_timers[timer] === void 0) return false;
         window.clearTimeout(list_of_timers[timer]);
         return true;
       };
@@ -131,4 +112,5 @@
       error_func: error_function
     };
   })(jQuery, window, document);
+
 }).call(this);
