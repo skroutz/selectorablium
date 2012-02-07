@@ -16,6 +16,8 @@ Its search in case-insensitive as well as accent insensitive, regading the greek
 
 It is tested with more than 10.000 items stored in the localstorage, with the responce time while searching being < 50ms.
 
+
+
 ##HOWTO
 
 The `<select>` elements should have no options hardcoded.
@@ -45,6 +47,32 @@ just include the following
 
 **'app_name'** is the var that will be used for namespacing and is ***required***
 
+
+
+##XHR
+On plugin load an initial XHR will be made to get the initial data
+It will be like:
+
+**http://`your_domain`/`data-url`/**
+
+where **your_domain** is the domain of your site or web-service and **data-url** is the value in the `<select>` attribute.
+
+Then if you type some characters and the query length is bigger than the threshold, and the timeout time passes, another XHR is made and it will be like:
+
+**http://`your_domain`/`data-url`/?`data-query`=`query`**
+
+where **your_domain** is domain of your site or web-service and **data-url** and **data-query** are the values in the according `<select>` attributes, and **query** is what the user has typed. 
+
+
+
+##JSON DATA
+The received JSON data must be in the form of
+`[{"id":1,"name":"test1"},{"id":2,"name":"test2"}]`
+It must be an array of objects and each object must have an id property and a name property.
+The id is the option value and the anme is the options text.
+
+
+
 ##USEFULL METHODS
 First of all, get the instance object:a 
 
@@ -70,6 +98,8 @@ It is implemented in the form of
 * **attributes** will be either 'data' or 'timestamp'
 
 They are grouped by the **app_name** during the javascript invocation and further differentiation inside the group can be made by **data-name**.
+
+
 
 ##Authors
 Bill Trikalinos
