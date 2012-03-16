@@ -7,6 +7,7 @@
     XHRTimeout                 : 650 #milliseconds
     maxResultsNum              : 10
     maxNewResultsNum           : 5
+    search_from_start          : true
     list_of_replacable_chars   : [
         ["ά", "α"],
         ['έ', 'ε'],
@@ -16,7 +17,7 @@
         ['ύ', 'υ'],
         ['ώ', 'ω']
       ]
-  
+
   Selectorablium = (element, options) ->
     return false unless $.fn.toolsfreak
     return false unless $.fn.storagefreak
@@ -27,18 +28,18 @@
     if !@options.app_name or @options.app_name is ""
       @__error 'objectCreation', "no app_name specified on params"
       return false
-    
+
     @options.url           = @el.data "url"
     @options.query_string  = @el.data "query"
     @options.data_name     = @el.data "name"
-    
+
     @options.default_value = @el.data "default_value"    || 0
     @options.default_text  = @el.data "default_text"     || "Please select an option"
     @options.selected_id   = @el.data "selected_id" || null
 
     @db                    = null
     @db_prefix             = "skr." + @options.app_name + "." + pluginName + "."
-    
+
     @el_container          = null
     @el_top                = null
     @el_inner_container    = null
@@ -48,10 +49,10 @@
     @el_loader             = null
     @el_clear              = null
     @el_initial_loader     = null
-    
+
     @query                 = ""
     @queryLength           = ""
-    
+
     @data                  = null
     @result_list           = null
     @selected_item         = null
@@ -60,21 +61,21 @@
     @no_results            = false
     @do_not_hide_me        = false
     @got_focused           = false
-    
+
     @init()
-    
+
     return
 
   Selectorablium:: =
     name     : pluginName
     defaults : defaults
-    
+
     init: ->
       @createHtmlElements()
       @makeDbPreparation()
       @registerEventHandlers()
       return
-    
+
     makeDbPreparation: ->
       @db = Selectorablium.getLocalDBObj()
       Selectorablium.initiateLocalData.call this
@@ -84,7 +85,7 @@
       @el_container = $('<div class="selectorablium_cont">').css
         width     : @el.outerWidth()
         minHeight : @el.outerHeight()
-      
+
       HTML_string  = '<div class="top">'
       HTML_string += '<div class="initial_loader">Loading initial data...</div>'
       HTML_string += '<a class="cancel_button">Clear</a>'
@@ -99,20 +100,20 @@
       HTML_string += '<ul class="list_container"></ul>'
       HTML_string += '</div>'
       @el_container.append HTML_string
-      
+
       @el_top             = @el_container.find(".top").css 'height', @el.outerHeight(true)
       @el_inner_container = @el_container.find(".inner_container")
       @el_input           = @el_container.find("input").attr("autocomplete", "off")
       @el_list_cont       = @el_container.find(".list_container")
       @el_XHRCounter      = @el_container.find(".XHRCounter")
       @el_loader          = @el_container.find(".loader")
-      @el_clear           = @el_container.find(".cancel_button").css 
+      @el_clear           = @el_container.find(".cancel_button").css
         'height'     : @el.outerHeight(true) + "px",
         'lineHeight' : @el.outerHeight(true) + "px"
 
       @el_initial_loader  = @el_container.find(".initial_loader")
-      
-      
+
+
       @el.parent().css('position','relative').append @el_container
       @el.html('<option value="' + @options.default_value + '">' + @options.default_text + '</option>')
       @el.css
@@ -124,7 +125,7 @@
       @el_top.on 'click', (e) =>
         if @el_inner_container.is(":visible")
           @hide()
-        else 
+        else
           #WAIT FOR INITIAL DATA TO LOAD
           if @el_top.hasClass("disabled") is false
             @el_container.addClass("active")
@@ -133,11 +134,11 @@
             @el_input.focus()
 
         return
-      
+
       @el.on 'focus', (e) =>
         if @el_inner_container.is(":visible")
           @hide()
-        else 
+        else
           #WAIT FOR INITIAL DATA TO LOAD
           if @el_top.hasClass("disabled") is false
             @el_container.addClass("active")
@@ -146,11 +147,11 @@
             @el_input.focus()
 
         return
-      
+
       @el_container.on 'click', (e)=>
         @do_not_hide_me = true
         return
-      
+
       @el_clear.on 'click', (e)=>
         e.stopPropagation()
         @resetSelectItem()
@@ -169,12 +170,12 @@
       else
         @el_input.on 'keydown', (e) =>
           @onKeyPress e
-      
+
       @el_input.on 'keyup', (e) =>
         @onKeyUp e
-      
+
       return
-    
+
     hide: ->
       if @el_inner_container.is(":visible")
         @el_container.removeClass("active")
@@ -194,7 +195,7 @@
         when 9 #tab
           if @selected_item
             @activateTheSelectedItem()
-          else  
+          else
             @hide()
           return true
         when 27 #esc
@@ -219,21 +220,21 @@
           return true
         else
           return
-        
+
       e.stopImmediatePropagation()
       e.preventDefault()
       return
-    
+
     onKeyUp: (e) ->
       switch e.keyCode
         #KEYS SHIFT, CTRL, ALT, LEFT, UP, RIGHT, DOWN, ESC, ENTER, WIN KEY, CAPS LOCK, PAGEUP, PAGEDOWN, HOME, END, INSERT, TAB
         when 16, 17, 18, 37, 38, 39, 40, 27, 13, 91, 20, 33, 34, 35, 36, 45, 9
           return false
-      
+
       @query = @el_input.val().trim()
       @queryLength = @query.length
-      
-      if @queryLength is 0 
+
+      if @queryLength is 0
         @el_list_cont.empty()
         @selected_item = null
         @timers_func.end("RemoteSearchTimeout")
@@ -256,25 +257,25 @@
           @timers_func.end("RemoteSearchTimeout")
           @el_loader.hide()
           @el_XHRCounter.hide()
-            
+
       return false
-    
+
     showCountdownForXHR: ->
       @el_loader.hide()
       @el_XHRCounter.stop(true, true).css("width", "0").show()
-      @el_XHRCounter.animate 
+      @el_XHRCounter.animate
         width: "100%"
       , @options.XHRTimeout
       , =>
         @el_XHRCounter.hide()
         return
-      
+
       return
 
     beginLocalSearchFor: (query) ->
       @makeSuggestionListFor query
       return
-    
+
     beginRemoteSearchFor: (query) ->
       params = {}
       params[@options.query_string] = query
@@ -289,7 +290,7 @@
         if we_have_new_results and query is @query
           @el_list_cont.find(".empty-message").remove()
           @__dbSet @options.data_name + "_data", @data
-          @result_to_prepend = @result_to_prepend.sort (a,b) -> 
+          @result_to_prepend = @result_to_prepend.sort (a,b) ->
             if (a.name < b.name)
                 return -1
             else
@@ -301,9 +302,9 @@
           @el_list_cont.find(".empty-message").text("No results found")
         @el_loader.hide()
         return
-      
+
       return
-    
+
     insertNewResults: (query) ->
       fragment = document.createDocumentFragment()
 
@@ -320,15 +321,15 @@
         fragment.appendChild li
       @el_list_cont.prepend fragment
       @el_list_cont[0].innerHTML += ''
-      
+
       new_items = @el_list_cont.find(".item.ajaxed")
-      
+
       #make an animation for the newly brought items
       sliding_timer = 0
       new_items.each (index, item)=>
         setTimeout =>
           $(item).slideDown(70)
-          return 
+          return
         , sliding_timer
         sliding_timer += 100
         return
@@ -341,11 +342,11 @@
         me.selectThisItem $(this)
       @items_list.on 'click', {me}, ->
         me.activateTheSelectedItem()
-      
+
       @highlightTextAndItems(new_items)
       @result_to_prepend = []
       return
-    
+
     removeAccents: (string) ->
       new_string = string
       for index, value of @options.list_of_replacable_chars
@@ -363,24 +364,27 @@
           # count +=1
         ## TODO convert it to REXEXP.test
         canonical_name = @removeAccents name.toLowerCase()
-        result_list.push({id: id, name: name}) if canonical_name.indexOf(canonical_query) isnt -1
+        if @options.search_from_start is true
+          result_list.push({id: id, name: name}) if canonical_name.indexOf(canonical_query) is 0
+        else
+          result_list.push({id: id, name: name}) if canonical_name.indexOf(canonical_query) isnt -1
       ##BENCHMARKING STUFF##
         # console.log "searched:" + count
-      
+
       if result_list.length is 0
         @no_results = true
-      
+
       @result_list = result_list.slice 0, @options.maxResultsNum
-      
-      @result_list = @result_list.sort (a,b) -> 
+
+      @result_list = @result_list.sort (a,b) ->
         if (a.name < b.name)
             return -1
         else
             return 1
-      
+
       @printSuggestionList(query)
       return
-    
+
     printSuggestionList: () ->
       @el_list_cont.empty()
 
@@ -410,7 +414,7 @@
           fragment.appendChild li
         @el_list_cont.append fragment
         @el_list_cont[0].innerHTML += ''
-        
+
         ##BENCHMARKING STUFF##
           # @end_timestamp = new Date().getTime()
           # console.log "ms for search and print:" + (parseInt(@end_timestamp,10) - parseInt(@start_timestamp,10))
@@ -422,16 +426,16 @@
           me.selectThisItem $(this)
         @items_list.on 'click', {me}, ->
           me.activateTheSelectedItem()
-        
+
         @selected_item = @el_list_cont.find(".item:first").addClass("selected")
-        
+
         @highlightTextAndItems()
-      return 
+      return
 
     highlightTextAndItems: (items) ->
       if @query isnt ""
         item_to_highlight = items || @items_list
-        item_to_highlight.each (index, element) => 
+        item_to_highlight.each (index, element) =>
           item_name = $(element).html()
           if @query isnt ""
 
@@ -445,10 +449,10 @@
             item_name = item_name.replace(regEXP, "<span class='highlight'>$1</span>")
             delete regEXP
           $(element).html(item_name)
-          return         
-        
+          return
+
       return
-    
+
     resetSelectItem: () ->
       @el.html('<option value="' + @options.default_value + '">' + @options.default_text + '</option>')
       @hide()
@@ -463,14 +467,14 @@
       if @selected_item isnt null
         @selected_item.removeClass("selected")
         @selected_item = null
-      
+
       @selected_item = element.addClass("selected")
-      return 
-    
+      return
+
     moveSelectedElement: (direction) ->
       count = @items_list.length
       index = @items_list.index(@selected_item) + count
-      
+
       if direction is "up"
         custom_index = index - 1
       else if direction is "down"
@@ -479,7 +483,7 @@
 
       @selectThisItem @items_list.filter(".item:nth(" + index + ")")
       return
-    
+
     setSelectItem: (params, type) ->
       my_type = type || "refresh"
       if typeof params is 'object'
@@ -502,16 +506,16 @@
       @el.html('<option value="' + value + '" selected="selected">   ' + text + '</option>')
       @hide()
       return true
-    
+
     refreshMyData: ->
       if (@data = @__dbGet @options.data_name + "_data") isnt false
         return true
-      else 
+      else
         return false
-    
+
     appendNewItem: (obj) ->
       @data[obj.value] = obj.name
-      
+
       if @__dbSet(@options.data_name + "_data", @data) is false
         @__error 'appendNewItem', "error storing '" + @options.data_name + "' newly appended data"
         return false
@@ -532,22 +536,22 @@
 
     __dbSet: (name, data)->
       return @db.set( @db_prefix + name, data )
-    
+
     __error: (message, func_name) ->
       if func_name
         x = message
         message = func_name
         func_name = x
-      
+
       name = (if @options.app_name then @options.app_name else "[" + @name + "]" )
       where = "@" + name + ":"
       if func_name
         where = func_name + where
-      
+
       $.fn.toolsfreak.error_func message, where
 
       return
-  
+
   ##PRIVATE STATIC METHODS
   Selectorablium.getLocalDBObj = ->
     try
@@ -580,12 +584,12 @@
         success: (data)=>
           new_data = {}
           result = {}
-          
+
           length = 0
           for index, value of data
             new_data[value.id] = value.name
             length += 1
-          
+
           ##BENCHMARKING CODE##
             # for iteration in [1..150000]
             #   # console.log iteration, iteration % length
@@ -601,13 +605,13 @@
             if @__dbSet(@options.data_name + "_timestamp", new Date().getTime()) is false
               @__error error_string_where, "error storing timestamp" + @options.app_name
               return false
-            
+
             @data = new_data
             if type is "initial"
               @showPreSelectedItem()
               @el_initial_loader.fadeOut()
               @el_top.removeClass "disabled"
-            
+
           return_value = true
           return true
         error: (a,b,c)=>
@@ -624,10 +628,10 @@
   Selectorablium.initiateLocalData = () ->
     current_timestamp = new Date().getTime()
     @local_db_timestamp = @__dbGet @options.data_name + "_timestamp"
-    
+
     if @local_db_timestamp isnt false
       @local_db_timestamp = parseInt @local_db_timestamp, 10
-    
+
     if @local_db_timestamp is false or (current_timestamp - @local_db_timestamp) > @options.localCacheTimeout
       @el_initial_loader.show()
       @el_top.addClass "disabled"
@@ -645,8 +649,8 @@
     @each ->
       $.data this, pluginName, new Selectorablium(this, options)  unless $.data(this, pluginName)
       return
-    
+
     return
-  
+
   return
 ) jQuery, window, document

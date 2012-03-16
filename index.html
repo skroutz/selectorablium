@@ -2,14 +2,14 @@
 <html>
   <head>
     <meta charset='UTF-8'>
-    <link href="css/bootstrap.min.css" rel="stylesheet" type="text/css" media="all" />
-    <link href="css/selectorablium.css" rel="stylesheet" type="text/css" media="all" />
-    <link href="css/style.css" rel="stylesheet" type="text/css" media="all" />
-    
-    <script type="text/javascript" src="js/jquery-1.7.1.min.js"></script>
-    <script type="text/javascript" src="js/tools_freak.jquery.js"></script>
-    <script type="text/javascript" src="js/storage_freak.jquery.js"></script>
-    <script type="text/javascript" src="js/selectorablium.jquery.js"></script>
+    <link href="sele/css/bootstrap.min.css" rel="stylesheet" type="text/css" media="all" />
+    <link href="sele/css/selectorablium.css" rel="stylesheet" type="text/css" media="all" />
+    <link href="sele/css/style.css" rel="stylesheet" type="text/css" media="all" />
+
+    <script type="text/javascript" src="sele/js/jquery-1.7.1.min.js"></script>
+    <script type="text/javascript" src="sele/js/tools_freak.jquery.js"></script>
+    <script type="text/javascript" src="sele/js/storage_freak.jquery.js"></script>
+    <script type="text/javascript" src="sele/js/selectorablium.jquery.js"></script>
     <!--
     <script type="text/javascript" src="js/selectorablium.jquery.bundle.min.js"></script>
     -->
@@ -20,7 +20,7 @@
       <div class="input_cont">
         <select
           class="selectorablium"
-          data-url="/earth/shops.json"
+          data-url="/earth/shops/all.json"
           data-query="query"
           data-name="shops"
           data-default_value=""
@@ -34,7 +34,7 @@
       <div class="input_cont">
         <select
           class="selectorablium"
-          data-url="/earth/manufacturers.json"
+          data-url="/earth/manufacturers/all.json"
           data-query="query"
           data-name="manufacturers"
           data-default_value=""
@@ -50,13 +50,13 @@
         <button id="reset_button" type="reset" class="btn danger">Reset</button>
       </div>
     </form>
-    
+
     <a class="btn info" href="#" id="eshop_setter">Set Custom Eshop</a>
     <a class="btn info" href="#" id="manufacturer_setter">Set Custom Eshop Manufacturer</a>
-    
+
     <script>
       $(function() {
-        /*SELECTORABLIUM INVOCATION*/    
+        /*SELECTORABLIUM INVOCATION*/
         $("select.selectorablium").Selectorablium({ app_name: "selectorablium_test" });
 
         /*SET THE ONRESET EVENT HANDLERS FOR THE SELECTORABLIUMS*/

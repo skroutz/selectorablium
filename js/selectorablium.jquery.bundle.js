@@ -358,6 +358,7 @@
       XHRTimeout: 650,
       maxResultsNum: 10,
       maxNewResultsNum: 5,
+      search_from_start: true,
       list_of_replacable_chars: [["ά", "α"], ['έ', 'ε'], ['ή', 'η'], ['ί', 'ι'], ['ό', 'ο'], ['ύ', 'υ'], ['ώ', 'ω']]
     };
     Selectorablium = function(element, options) {
@@ -711,11 +712,20 @@
         for (id in _ref) {
           name = _ref[id];
           canonical_name = this.removeAccents(name.toLowerCase());
-          if (canonical_name.indexOf(canonical_query) !== -1) {
-            result_list.push({
-              id: id,
-              name: name
-            });
+          if (this.options.search_from_start === true) {
+            if (canonical_name.indexOf(canonical_query) === 0) {
+              result_list.push({
+                id: id,
+                name: name
+              });
+            }
+          } else {
+            if (canonical_name.indexOf(canonical_query) !== -1) {
+              result_list.push({
+                id: id,
+                name: name
+              });
+            }
           }
         }
         if (result_list.length === 0) this.no_results = true;
@@ -866,6 +876,19 @@
         } else {
           return false;
         }
+      },
+      appendNewItem: function(obj) {
+        this.data[obj.value] = obj.name;
+        if (this.__dbSet(this.options.data_name + "_data", this.data) === false) {
+          this.__error('appendNewItem', "error storing '" + this.options.data_name + "' newly appended data");
+          return false;
+        } else {
+          if (this.__dbSet(this.options.data_name + "_timestamp", new Date().getTime()) === false) {
+            this.__error('appendNewItem', "error storing timestamp" + this.options.app_name);
+            return false;
+          }
+        }
+        return true;
       },
       showPreSelectedItem: function() {
         if (this.options.selected_id) {
