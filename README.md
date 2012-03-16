@@ -112,4 +112,4 @@ By running cake build you can build the coffee scripts as well as minify them. F
 ##Authors
 Bill Trikalinos
 
-* [https://github.com/basiloungas](https://github.com/billtrik)
+* [https://github.com/billtrik](https://github.com/billtrik)
