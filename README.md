@@ -6,7 +6,7 @@ SKROUTZ SELECTORABLIUM
 On plugin load, it loads via XHR the initial data and stores them into the localstorage.
 It then searches the localstorage, prints sorts, and highlights the results.
 
-You can select an item from the results either by clicking with the mouse or via naviagtion with the keyboard keys and pressing enter. 
+You can select an item from the results either by clicking with the mouse or via naviagtion with the keyboard keys and pressing enter.
 
 Tab navigation should work as if it wa a native element.
 
@@ -61,7 +61,7 @@ Then if you type some characters and the query length is bigger than the thresho
 
 **http://`your_domain`/`data-url`/?`data-query`=`query`**
 
-where **your_domain** is domain of your site or web-service and **data-url** and **data-query** are the values in the according `<select>` attributes, and **query** is what the user has typed. 
+where **your_domain** is domain of your site or web-service and **data-url** and **data-query** are the values in the according `<select>` attributes, and **query** is what the user has typed.
 
 
 
@@ -74,7 +74,7 @@ The id is the option value and the anme is the options text.
 
 
 ##USEFULL METHODS
-First of all, get the instance object:a 
+First of all, get the instance object:a
 
 `var instance_object = $("select.selectorablium:nth(0)").data('selectorablium')`
 
@@ -91,7 +91,7 @@ First of all, get the instance object:a
 ##LOCALSTORAGE NAMESPACING
 The namespacing scheme is designed so that multiple selectorablium groups can be present in the same page.
 
-It is implemented in the form of 
+It is implemented in the form of
 **"skr" + app_name + ".selectorablium." + data-name + "." + attributes**
 
 * **app_name** is the param passed during the javascript invocation
@@ -103,7 +103,7 @@ They are grouped by the **app_name** during the javascript invocation and furthe
 
 
 ##CAKEFILE
-By running cake build you can build the coffee scripts as well as minify them. Furthermore a bundle version is created (+ minified) with all the required dependencies included. 
+By running cake build you can build the coffee scripts as well as minify them. Furthermore a bundle version is created (+ minified) with all the required dependencies included.
 
 **Required:** coffeescript, uglify-js *(on top of node with npm of course of course)*
 
@@ -112,4 +112,4 @@ By running cake build you can build the coffee scripts as well as minify them. F
 ##Authors
 Bill Trikalinos
 
-* [https://github.com/basiloungas](https://github.com/basiloungas)
+* [https://github.com/basiloungas](https://github.com/billtrik)
