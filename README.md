@@ -8,13 +8,13 @@ It then searches the localstorage, prints sorts, and highlights the results.
 
 You can select an item from the results either by clicking with the mouse or via naviagtion with the keyboard keys and pressing enter.
 
-Tab navigation should work as if it wa a native element.
+Tab navigation should work as if it was a native element.
 
-If the length of the query is more than a threshold value, it makes an XHR and adds the new data (if any) to the local storage and then it displays them.
+If the length of the query is more than a threshold value, it waits for some time, and then it makes an XHR, adds the new data (if any) to the local storage and finally displays them.
 
-Its search in case-insensitive as well as accent insensitive, regading the greek language.
+It performs case-insensitive as well as accent insensitive search, regading the greek language.
 
-It is tested with more than 10.000 items stored in the localstorage, with the responce time while searching being < 50ms.
+It is tested with more than 10.000 items stored in the localstorage, with the responce time being < 50ms.
 
 
 
