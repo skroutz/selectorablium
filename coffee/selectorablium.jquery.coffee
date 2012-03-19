@@ -460,6 +460,7 @@
 
     activateTheSelectedItem: () ->
       @el.html('<option value="' + @selected_item.data("value") + '" selected="selected">   ' + @selected_item.text() + '</option>')
+      @el.trigger("change")
       @hide()
       return false
 
