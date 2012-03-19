@@ -470,6 +470,7 @@
       },
       activateTheSelectedItem: function() {
         this.el.html('<option value="' + this.selected_item.data("value") + '" selected="selected">   ' + this.selected_item.text() + '</option>');
+        this.el.trigger("change");
         this.hide();
         return false;
       },
