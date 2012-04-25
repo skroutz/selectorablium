@@ -374,13 +374,15 @@
       if result_list.length is 0
         @no_results = true
 
-      @result_list = result_list.slice 0, @options.maxResultsNum
 
-      @result_list = @result_list.sort (a,b) ->
+      result_list = result_list.sort (a,b) ->
         if (a.name < b.name)
-            return -1
+          return -1
         else
-            return 1
+          return 1
+        return
+
+      @result_list = result_list.slice 0, @options.maxResultsNum
 
       @printSuggestionList(query)
       return
@@ -443,11 +445,11 @@
             for index, value of @options.list_of_replacable_chars
               regEXP = new RegExp value[1], "ig"
               new_string = new_string.replace regEXP, "(?:" + value[0] + "|" + value[1] + ")"
-              delete regEXP
+              regEXP = null
 
             regEXP = new RegExp "(" + new_string + ")", "ig"
             item_name = item_name.replace(regEXP, "<span class='highlight'>$1</span>")
-            delete regEXP
+            regEXP = null
           $(element).html(item_name)
           return
 
