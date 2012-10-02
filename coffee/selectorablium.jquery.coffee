@@ -349,7 +349,7 @@
 
     removeAccents: (string) ->
       new_string = string
-      for index, value of @options.list_of_replacable_chars
+      for value in @options.list_of_replacable_chars
         new_string = new_string.replace(value[0],value[1])
 
       return new_string
@@ -359,7 +359,7 @@
       canonical_query = @removeAccents query.toLowerCase()
       ##BENCHMARKING STUFF##
         # count = 0
-      for id, name of @data
+      for own id, name of @data
         ##BENCHMARKING STUFF##
           # count +=1
         ## TODO convert it to REXEXP.test
@@ -442,7 +442,8 @@
           if @query isnt ""
 
             new_string = @query
-            for index, value of @options.list_of_replacable_chars
+            for value in @options.list_of_replacable_chars
+
               regEXP = new RegExp value[1], "ig"
               new_string = new_string.replace regEXP, "(?:" + value[0] + "|" + value[1] + ")"
               regEXP = null
@@ -589,7 +590,7 @@
           result = {}
 
           length = 0
-          for index, value of data
+          for own index, value of data
             new_data[value.id] = value.name
             length += 1
 
