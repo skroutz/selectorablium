@@ -174,6 +174,7 @@
       @el_input.on 'keyup', (e) =>
         @onKeyUp e
 
+      me = @
       @el_list_cont.delegate '.item', 'mouseenter', (e)-> me.selectThisItem $(this)
       @el_list_cont.delegate '.item', 'click', (e)-> me.activateTheSelectedItem()
       return

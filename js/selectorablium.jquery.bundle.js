@@ -512,7 +512,8 @@
         });
       },
       registerEventHandlers: function() {
-        var _this = this;
+        var me,
+          _this = this;
         this.el_top.on('click', function(e) {
           if (_this.el_inner_container.is(":visible")) {
             _this.hide();
@@ -564,6 +565,7 @@
         this.el_input.on('keyup', function(e) {
           return _this.onKeyUp(e);
         });
+        me = this;
         this.el_list_cont.delegate('.item', 'mouseenter', function(e) {
           return me.selectThisItem($(this));
         });
