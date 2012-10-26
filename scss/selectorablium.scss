@@ -3,7 +3,6 @@
   top:0px;
   left:0px;
   width:100%;
-  z-index:2;
   display: block;
   box-sizing: border-box;
   -moz-box-sizing: border-box;
@@ -167,6 +166,7 @@
   }
 
   &.active{
+    z-index:200;
     .top{
       border: 1px solid rgb(170, 170, 170);
       border-radius: 4px 0 0 4px;
