@@ -18,7 +18,7 @@ task 'build', 'Build single and concatenated files and their minified versions',
 task 'build:single', 'Build single js files and their minified versions', ->
   console.log '** Initiating single files task **'
   build_single_files()
-  
+
 task 'build:bundle', 'Build one concatenated js file and its minified version', ->
   console.log '** Initiating files concatenation task **'
   build_bundle_file()
@@ -26,6 +26,11 @@ task 'build:bundle', 'Build one concatenated js file and its minified version', 
 
 
 build_single_files = (callback) ->
+  exec 'sass --update --force scss:css --style compressed', (err, stdout, stderr) ->
+    throw err if err
+    console.log stdout + stderr if stdout isnt "" or stderr isnt ""
+    console.log 'Compilation of SCSS files complete.'
+
   exec 'coffee --compile --output js/ coffee/', (err, stdout, stderr) ->
     throw err if err
     console.log stdout + stderr if stdout isnt "" or stderr isnt ""
@@ -45,7 +50,7 @@ build_bundle_file = (callback) ->
     fs.readFile "coffee/#{file}.coffee", 'utf8', (err, fileContents) ->
       throw err if err
       appContents[index] = fileContents
-      process() if --remaining is 0  
+      process() if --remaining is 0
   process = ->
     fs.writeFile 'coffee/selectorablium.jquery.bundle.coffee', appContents.join('\n\n'), 'utf8', (err) ->
       throw err if err
