@@ -174,6 +174,8 @@
       @el_input.on 'keyup', (e) =>
         @onKeyUp e
 
+      @el_list_cont.delegate '.item', 'mouseenter', (e)-> me.selectThisItem $(this)
+      @el_list_cont.delegate '.item', 'click', (e)-> me.activateTheSelectedItem()
       return
 
     hide: ->
@@ -337,12 +339,6 @@
       @items_list = @el_list_cont.find(".item")
       @selected_item = @el_list_cont.find(".selected")
 
-      me = this
-      @items_list.on 'mouseenter', {me}, ->
-        me.selectThisItem $(this)
-      @items_list.on 'click', {me}, ->
-        me.activateTheSelectedItem()
-
       @highlightTextAndItems(new_items)
       @result_to_prepend = []
       return
@@ -422,12 +418,6 @@
           # console.log "ms for search and print:" + (parseInt(@end_timestamp,10) - parseInt(@start_timestamp,10))
 
         @items_list = @el_list_cont.find(".item")
-
-        me = this
-        @items_list.on 'mouseenter', {me}, ->
-          me.selectThisItem $(this)
-        @items_list.on 'click', {me}, ->
-          me.activateTheSelectedItem()
 
         @selected_item = @el_list_cont.find(".item:first").addClass("selected")
 

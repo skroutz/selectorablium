@@ -564,6 +564,12 @@
         this.el_input.on('keyup', function(e) {
           return _this.onKeyUp(e);
         });
+        this.el_list_cont.delegate('.item', 'mouseenter', function(e) {
+          return me.selectThisItem($(this));
+        });
+        this.el_list_cont.delegate('.item', 'click', function(e) {
+          return me.activateTheSelectedItem();
+        });
       },
       hide: function() {
         if (this.el_inner_container.is(":visible")) {
@@ -712,7 +718,7 @@
         });
       },
       insertNewResults: function(query) {
-        var a, fragment, item, li, me, new_items, sliding_timer, _i, _len, _ref,
+        var a, fragment, item, li, new_items, sliding_timer, _i, _len, _ref,
           _this = this;
         fragment = document.createDocumentFragment();
         _ref = this.result_to_prepend;
@@ -741,17 +747,6 @@
         });
         this.items_list = this.el_list_cont.find(".item");
         this.selected_item = this.el_list_cont.find(".selected");
-        me = this;
-        this.items_list.on('mouseenter', {
-          me: me
-        }, function() {
-          return me.selectThisItem($(this));
-        });
-        this.items_list.on('click', {
-          me: me
-        }, function() {
-          return me.activateTheSelectedItem();
-        });
         this.highlightTextAndItems(new_items);
         this.result_to_prepend = [];
       },
@@ -804,7 +799,7 @@
         this.printSuggestionList(query);
       },
       printSuggestionList: function() {
-        var a, fragment, item, li, me, p, _i, _len, _ref;
+        var a, fragment, item, li, p, _i, _len, _ref;
         this.el_list_cont.empty();
         fragment = document.createDocumentFragment();
         if (this.result_list.length === 0) {
@@ -837,17 +832,6 @@
           this.el_list_cont.append(fragment);
           this.el_list_cont[0].innerHTML += '';
           this.items_list = this.el_list_cont.find(".item");
-          me = this;
-          this.items_list.on('mouseenter', {
-            me: me
-          }, function() {
-            return me.selectThisItem($(this));
-          });
-          this.items_list.on('click', {
-            me: me
-          }, function() {
-            return me.activateTheSelectedItem();
-          });
           this.selected_item = this.el_list_cont.find(".item:first").addClass("selected");
           this.highlightTextAndItems();
         }
