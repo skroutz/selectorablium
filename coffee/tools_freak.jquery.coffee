@@ -1,8 +1,5 @@
 (($, window, document) ->
   ##NEEDED FOR OLD EXPLORERS
-  unless String::trim
-    String::trim = ->
-      @replace /^\s+|\s+$/g, ""
   unless Array::indexOf
     Array::indexOf = (searchElement) ->
       "use strict"
