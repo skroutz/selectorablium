@@ -234,7 +234,7 @@
         when 16, 17, 18, 37, 38, 39, 40, 27, 13, 91, 20, 33, 34, 35, 36, 45, 9
           return false
 
-      @query = @el_input.val().trim()
+      @query = $.trim(@el_input.val())
       @queryLength = @query.length
 
       if @queryLength is 0
