@@ -1,15 +1,20 @@
-( ($, window, document) ->
-  ##PRIVATE PROPERTIES
-  pluginName = "selectorablium"
-  defaults   =
-    minCharsForRemoteSearch    : 3
-    localCacheTimeout          : 7 * 24 * 60 * 60 * 1000 #milliseconds #one week
-    XHRTimeout                 : 650 #milliseconds
-    maxResultsNum              : 10
-    maxNewResultsNum           : 5
-    search_from_start          : true
-    list_of_replacable_chars   : [
-        ["ά", "α"],
+define [
+  'jquery'
+  'storage_freak'
+  'tools/timeout'
+  'tools/error_reporter'
+], ($, StorageFreak, Timeout, ErrorReporter)->
+
+  class Selectorablium
+    @defaults:
+      minCharsForRemoteSearch    : 3
+      localCacheTimeout          : 7 * 24 * 60 * 60 * 1000 #milliseconds #one week
+      XHRTimeout                 : 650 #milliseconds
+      maxResultsNum              : 10
+      maxNewResultsNum           : 5
+      search_from_start          : true
+      list_of_replacable_chars   : [
+        ['ά', 'α'],
         ['έ', 'ε'],
         ['ή', 'η'],
         ['ί', 'ι'],
@@ -18,63 +23,145 @@
         ['ώ', 'ω']
       ]
 
-  Selectorablium = (element, options) ->
-    return false unless $.fn.toolsfreak
-    return false unless $.fn.storagefreak
-    @timers_func           = $.fn.toolsfreak.timers_handler()
-    @el                    = $(element).attr("autocomplete", "off")
-    @options               = $.extend {}, defaults, options
+    @getLocalDBObj: ->
+      try
+        return new StorageFreak()
+      catch e
+        @__error 'getLocalDBObj', "could not get StorageFreak object"
+        return null
 
-    if !@options.app_name or @options.app_name is ""
-      @__error 'objectCreation', "no app_name specified on params"
-      return false
+    @makeWholeDumpXHR: (params) ->
+      if params and params.type and params.type is "initial"
+        error_string_where = 'initiateLocalData'
+        type               = "initial"
+        my_async           = true
+      else if params and params.type and params.type is "refresh"
+        error_string_where = 'refreshXHRForSetSelectItem'
+        type               = "refresh"
+        my_async           = false
+        return_value       = false
+      else if params and params.type and params.type is "preselected"
+        error_string_where = 'XHRForPreselectedItem'
+        type               = "preselected"
+        my_async           = true
 
-    @options.url           = @el.data "url"
-    @options.query_string  = @el.data "query"
-    @options.data_name     = @el.data "name"
+      try
+        $.ajax
+          url: @options.url
+          type: "get"
+          dataType: "json"
+          async: my_async
+          success: (data)=>
+            new_data = {}
+            result = {}
 
-    @options.default_value = @el.data "default_value"    || 0
-    @options.default_text  = @el.data "default_text"     || "Please select an option"
-    @options.selected_id   = @el.data "selected_id" || null
+            length = 0
+            for own index, value of data
+              new_data[value.id] = value.name
+              length += 1
 
-    @db                    = null
-    @db_prefix             = "skr." + @options.app_name + "." + pluginName + "."
+            ##BENCHMARKING CODE##
+              # for iteration in [1..150000]
+              #   # console.log iteration, iteration % length
+              #   result[iteration] = new_data[iteration % length]
+              #   i = iteration
+              # console.log "setted" + @options.data_name + ":" + i
+              ##change below new_data to result##
 
-    @el_container          = null
-    @el_top                = null
-    @el_inner_container    = null
-    @el_input              = null
-    @el_list_cont          = null
-    @el_XHRCounter         = null
-    @el_loader             = null
-    @el_clear              = null
-    @el_initial_loader     = null
+            if @__dbSet(@options.data_name + "_data", new_data) is false
+              @__error error_string_where, "error storing '" + @options.data_name + "' initial data to localStorage"
+              return false
+            else
+              if @__dbSet(@options.data_name + "_timestamp", new Date().getTime()) is false
+                @__error error_string_where, "error storing timestamp" + @options.app_name
+                return false
 
-    @query                 = ""
-    @queryLength           = ""
+              @data = new_data
+              if type is "initial"
+                @showPreSelectedItem()
+                @el_initial_loader.fadeOut()
+                @el_top.removeClass "disabled"
 
-    @data                  = null
-    @result_list           = null
-    @selected_item         = null
-    @items_list            = null
-    @result_to_prepend     = []
-    @no_results            = false
-    @do_not_hide_me        = false
-    @got_focused           = false
+            return_value = true
+            return true
+          error: (a,b,c)=>
+            @__error error_string_where, "XHR error"
+            return_value = false
+            return false
 
-    @init()
+      catch e
+        @__error error_string_where, "catched XHR error"
+        return_value = false
 
-    return
+      return return_value
 
-  Selectorablium:: =
-    name     : pluginName
-    defaults : defaults
+    @initiateLocalData: () ->
+      current_timestamp = new Date().getTime()
+      @local_db_timestamp = @__dbGet @options.data_name + "_timestamp"
 
-    init: ->
+      if @local_db_timestamp isnt false
+        @local_db_timestamp = parseInt @local_db_timestamp, 10
+
+      if @local_db_timestamp is false or (current_timestamp - @local_db_timestamp) > @options.localCacheTimeout
+        @el_initial_loader.show()
+        @el_top.addClass "disabled"
+
+        #MAKE THE XHR
+        Selectorablium.makeWholeDumpXHR.call this, {type: "initial"}
+
+      else
+        @data = @__dbGet @options.data_name + "_data"
+        @showPreSelectedItem()
+
+      return
+
+    constructor: (element, options) ->
+      @el = $(element).attr("autocomplete", "off")
+
+      @timeout = new Timeout()
+      @error_reporter = ErrorReporter
+
+      @options = $.extend {}, Selectorablium.defaults, options
+      if !@options.app_name or @options.app_name is ""
+        @__error 'objectCreation', "no app_name specified on params"
+        return false
+
+      @options.url           = @el.data "url"
+      @options.query_string  = @el.data "query"
+      @options.data_name     = @el.data "name"
+
+      @options.default_value = @el.data "default_value"    || 0
+      @options.default_text  = @el.data "default_text"     || "Please select an option"
+      @options.selected_id   = @el.data "selected_id" || null
+
+      @db                    = null
+      @db_prefix             = "skr." + @options.app_name + "." + pluginName + "."
+
+      @el_container          = null
+      @el_top                = null
+      @el_inner_container    = null
+      @el_input              = null
+      @el_list_cont          = null
+      @el_XHRCounter         = null
+      @el_loader             = null
+      @el_clear              = null
+      @el_initial_loader     = null
+
+      @query                 = ""
+      @queryLength           = ""
+
+      @data                  = null
+      @result_list           = null
+      @selected_item         = null
+      @items_list            = null
+      @result_to_prepend     = []
+      @no_results            = false
+      @do_not_hide_me        = false
+      @got_focused           = false
+
       @createHtmlElements()
       @makeDbPreparation()
       @registerEventHandlers()
-      return
 
     makeDbPreparation: ->
       @db = Selectorablium.getLocalDBObj()
@@ -189,7 +276,7 @@
         @el_loader.hide()
         @el_XHRCounter.hide()
         @selected_item = null
-        @timers_func.end("RemoteSearchTimeout")
+        @timeout.end("RemoteSearchTimeout")
         @query = ""
       return
 
@@ -240,7 +327,7 @@
       if @queryLength is 0
         @el_list_cont.empty()
         @selected_item = null
-        @timers_func.end("RemoteSearchTimeout")
+        @timeout.end("RemoteSearchTimeout")
         @el_loader.hide()
         @el_XHRCounter.hide()
       else
@@ -250,14 +337,14 @@
         @beginLocalSearchFor query
         if query.length >= @options.minCharsForRemoteSearch #and @query.indexOf(@last_invalid_query) is -1
           @showCountdownForXHR()
-          @timers_func.endAndStart =>
+          @timeout.endAndStart =>
               @el_loader.show()
               @beginRemoteSearchFor query
               return
             , @options.XHRTimeout
             ,"RemoteSearchTimeout"
         else
-          @timers_func.end("RemoteSearchTimeout")
+          @timeout.end("RemoteSearchTimeout")
           @el_loader.hide()
           @el_XHRCounter.hide()
 
@@ -543,109 +630,8 @@
       if func_name
         where = func_name + where
 
-      $.fn.toolsfreak.error_func message, where
+      @error_reporter message, where
 
       return
 
-  ##PRIVATE STATIC METHODS
-  Selectorablium.getLocalDBObj = ->
-    try
-      return $.fn.storagefreak()
-    catch e
-      @__error 'getLocalDBObj', "could not get StorageFreak object"
-      return null
-
-  Selectorablium.makeWholeDumpXHR = (params) ->
-    if params and params.type and params.type is "initial"
-      error_string_where = 'initiateLocalData'
-      type               = "initial"
-      my_async           = true
-    else if params and params.type and params.type is "refresh"
-      error_string_where = 'refreshXHRForSetSelectItem'
-      type               = "refresh"
-      my_async           = false
-      return_value       = false
-    else if params and params.type and params.type is "preselected"
-      error_string_where = 'XHRForPreselectedItem'
-      type               = "preselected"
-      my_async           = true
-
-    try
-      $.ajax
-        url: @options.url
-        type: "get"
-        dataType: "json"
-        async: my_async
-        success: (data)=>
-          new_data = {}
-          result = {}
-
-          length = 0
-          for own index, value of data
-            new_data[value.id] = value.name
-            length += 1
-
-          ##BENCHMARKING CODE##
-            # for iteration in [1..150000]
-            #   # console.log iteration, iteration % length
-            #   result[iteration] = new_data[iteration % length]
-            #   i = iteration
-            # console.log "setted" + @options.data_name + ":" + i
-            ##change below new_data to result##
-
-          if @__dbSet(@options.data_name + "_data", new_data) is false
-            @__error error_string_where, "error storing '" + @options.data_name + "' initial data to localStorage"
-            return false
-          else
-            if @__dbSet(@options.data_name + "_timestamp", new Date().getTime()) is false
-              @__error error_string_where, "error storing timestamp" + @options.app_name
-              return false
-
-            @data = new_data
-            if type is "initial"
-              @showPreSelectedItem()
-              @el_initial_loader.fadeOut()
-              @el_top.removeClass "disabled"
-
-          return_value = true
-          return true
-        error: (a,b,c)=>
-          @__error error_string_where, "XHR error"
-          return_value = false
-          return false
-
-    catch e
-      @__error error_string_where, "catched XHR error"
-      return_value = false
-
-    return return_value
-
-  Selectorablium.initiateLocalData = () ->
-    current_timestamp = new Date().getTime()
-    @local_db_timestamp = @__dbGet @options.data_name + "_timestamp"
-
-    if @local_db_timestamp isnt false
-      @local_db_timestamp = parseInt @local_db_timestamp, 10
-
-    if @local_db_timestamp is false or (current_timestamp - @local_db_timestamp) > @options.localCacheTimeout
-      @el_initial_loader.show()
-      @el_top.addClass "disabled"
-
-      #MAKE THE XHR
-      Selectorablium.makeWholeDumpXHR.call this, {type: "initial"}
-
-    else
-      @data = @__dbGet @options.data_name + "_data"
-      @showPreSelectedItem()
-
-    return
-
-  $.fn.Selectorablium = (options) ->
-    @each ->
-      $.data this, pluginName, new Selectorablium(this, options)  unless $.data(this, pluginName)
-      return
-
-    return
-
-  return
-) jQuery, window, document
+  return Selectorablium
