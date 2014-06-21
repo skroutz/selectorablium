@@ -159,6 +159,7 @@ module.exports = function(grunt) {
         src: [
           'wrappers/selectorablium/intro.js',
           'compiled/selectorablium_bundle.js',
+          'wrappers/selectorablium/jquery_plugin.js',
           'wrappers/selectorablium/outro.js',
         ],
         dest: 'dist/selectorablium.js'
