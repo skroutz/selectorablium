@@ -125,13 +125,18 @@ module.exports = function(grunt) {
         },
         src: [
           'wrappers/selectorablium/intro.js',
-          'compiled/tools_freak.jquery.js',
-          'compiled/storage_freak.jquery.js',
-          'compiled/selectorablium.jquery.js',
+          'compiled/selectorablium_bundle.js',
           'wrappers/selectorablium/outro.js',
         ],
         dest: 'dist/selectorablium.js'
       },
+    },
+
+    optimize_rjs: {
+      dist: {
+        name: "selectorablium",
+        dest: "compiled/selectorablium_bundle.js"
+      }
     },
 
     copy: {
@@ -148,12 +153,15 @@ module.exports = function(grunt) {
   });
 
   require('load-grunt-tasks')(grunt);
+  grunt.loadTasks( "tasks" );
+
 
   grunt.registerTask('build_css', [
     'sass'
   ]);
   grunt.registerTask('build_js', [
     'coffee:dist',
+    'optimize_rjs',
     'concat:js',
     'uglify:js'
   ]);
