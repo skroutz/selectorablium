@@ -1,19 +1,18 @@
 define [
   'jquery'
   'storage_freak'
-  'tools/timeout'
-  'tools/error_reporter'
-], ($, StorageFreak, Timeout, ErrorReporter)->
+], ($, StorageFreak)->
 
   class Selectorablium
-    @defaults:
-      minCharsForRemoteSearch    : 3
-      localCacheTimeout          : 7 * 24 * 60 * 60 * 1000 #milliseconds #one week
-      XHRTimeout                 : 650 #milliseconds
-      maxResultsNum              : 10
-      maxNewResultsNum           : 5
-      search_from_start          : true
-      list_of_replacable_chars   : [
+    defaults:
+      minCharsForRemoteSearch  : 3
+      localCacheTimeout        : 7 * 24 * 60 * 60 * 1000 #milliseconds #one week
+      XHRTimeout               : 650 #milliseconds
+      maxResultsNum            : 10
+      default_value            : 0
+      default_text             : 'Please select an option'
+      selected_id              : null
+      list_of_replacable_chars : [
         ['ά', 'α'],
         ['έ', 'ε'],
         ['ή', 'η'],
@@ -23,615 +22,381 @@ define [
         ['ώ', 'ω']
       ]
 
-    @getLocalDBObj: ->
-      try
-        return new StorageFreak()
-      catch e
-        @__error 'getLocalDBObj', "could not get StorageFreak object"
-        return null
+    _required: [
+      'app_name'
+      'url'
+      'query'
+      'name'
+      'minCharsForRemoteSearch'
+      'XHRTimeout'
+      'list_of_replacable_chars'
+      'localCacheTimeout'
+    ]
 
-    @makeWholeDumpXHR: (params) ->
-      if params and params.type and params.type is "initial"
-        error_string_where = 'initiateLocalData'
-        type               = "initial"
-        my_async           = true
-      else if params and params.type and params.type is "refresh"
-        error_string_where = 'refreshXHRForSetSelectItem'
-        type               = "refresh"
-        my_async           = false
-        return_value       = false
-      else if params and params.type and params.type is "preselected"
-        error_string_where = 'XHRForPreselectedItem'
-        type               = "preselected"
-        my_async           = true
+    template: """
+        <div class="selectorablium_cont">
+          <div class="top">
+            <div class="initial_loader">Loading initial data...</div>
+            <a class="clear_button">Clear</a>
+          </div>
+          <div class="inner_container clearfix">
+            <form>
+              <input autocomplete="off" name="var_name">
+              <span class="input_icon"></span>
+              <div class="loader"></div>
+              <div class="XHRCounter"></div>
+            </form>
+            <ul class="list_container"></ul>
+          </div>
+        </div>
+      """
 
-      try
-        $.ajax
-          url: @options.url
-          type: "get"
-          dataType: "json"
-          async: my_async
-          success: (data)=>
-            new_data = {}
-            result = {}
+    constructor: (element, options)->
+      return new Selectorablium(element, options) if @ instanceof Selectorablium is false
+      throw new Error('Element argument is required') if !element
+      @$el = $(element)
 
-            length = 0
-            for own index, value of data
-              new_data[value.id] = value.name
-              length += 1
+      @options  = options
+      @metadata = @$el.data()
+      @config   = $.extend {}, @defaults, @metadata, @options
+      for attr in @_required
+        throw new Error("'#{attr}' option is required") if !@config[attr]
 
-            ##BENCHMARKING CODE##
-              # for iteration in [1..150000]
-              #   # console.log iteration, iteration % length
-              #   result[iteration] = new_data[iteration % length]
-              #   i = iteration
-              # console.log "setted" + @options.data_name + ":" + i
-              ##change below new_data to result##
+      @state = 'disabled'
+      @shift_pressed = false
 
-            if @__dbSet(@options.data_name + "_data", new_data) is false
-              @__error error_string_where, "error storing '" + @options.data_name + "' initial data to localStorage"
-              return false
-            else
-              if @__dbSet(@options.data_name + "_timestamp", new Date().getTime()) is false
-                @__error error_string_where, "error storing timestamp" + @options.app_name
-                return false
+      @structure = []
+      @indexed_structure = {}
 
-              @data = new_data
-              if type is "initial"
-                @showPreSelectedItem()
-                @el_initial_loader.fadeOut()
-                @el_top.removeClass "disabled"
+      @$result_items  = []
+      @events_handled = []
 
-            return_value = true
-            return true
-          error: (a,b,c)=>
-            @__error error_string_where, "XHR error"
-            return_value = false
-            return false
+      @db = new StorageFreak @config
 
-      catch e
-        @__error error_string_where, "catched XHR error"
-        return_value = false
+      @_createHtmlElements()
+      @_registerEventHandlers()
 
-      return return_value
+      @data_ready_dfd = @db.init()
+      @data_ready_dfd.then @_onDBReady
 
-    @initiateLocalData: () ->
-      current_timestamp = new Date().getTime()
-      @local_db_timestamp = @__dbGet @options.data_name + "_timestamp"
+    ################
+    ## PUBLIC API ##
+    ################
+    cleanup: ->
+      @db.cleanup()
 
-      if @local_db_timestamp isnt false
-        @local_db_timestamp = parseInt @local_db_timestamp, 10
+      for item in @events_handled
+        item[0].off.apply item[0], item[1]
 
-      if @local_db_timestamp is false or (current_timestamp - @local_db_timestamp) > @options.localCacheTimeout
-        @el_initial_loader.show()
-        @el_top.addClass "disabled"
+      @$container.remove()
+      @$el.unwrap()
+      @$outer_container.remove()
 
-        #MAKE THE XHR
-        Selectorablium.makeWholeDumpXHR.call this, {type: "initial"}
+    then: (success, fail)-> @data_ready_dfd.then(success, fail)
 
-      else
-        @data = @__dbGet @options.data_name + "_data"
-        @showPreSelectedItem()
+    reset: -> @_insertOptionElement @config.default_value, @config.default_text
 
-      return
+    set: (key, value = null)->
+      ##TODO:
+      # if key and value
+      ## UPDATE DATABASE
+      if value is null
+        value = @db.searchByKey key
+        return false if value is false
 
-    constructor: (element, options) ->
-      @el = $(element).attr("autocomplete", "off")
+      @_insertOptionElement key, value
+      @_hide()
+      return true
 
-      @timeout = new Timeout()
-      @error_reporter = ErrorReporter
+    ## PRIVATE ##
+    _createHtmlElements: ->
+      @$el.wrap $('<div class="selectorablium_outer_cont">')
+      @$outer_container = @$el.parent()
+      @$outer_container.append @template
 
-      @options = $.extend {}, Selectorablium.defaults, options
-      if !@options.app_name or @options.app_name is ""
-        @__error 'objectCreation', "no app_name specified on params"
-        return false
+      @$container       = @$outer_container.find('.selectorablium_cont')
+      @$top             = @$container.find('.top')
+      @$top_loader      = @$container.find('.initial_loader')
+      @$inner_container = @$container.find('.inner_container')
+      @$input           = @$container.find('input')
+      @$results_list    = @$container.find('.list_container')
+      @$XHR_counter     = @$container.find('.XHRCounter')
+      @$XHR_loader      = @$container.find('.loader')
+      @$clear_button    = @$container.find('.clear_button')
 
-      @options.url           = @el.data "url"
-      @options.query_string  = @el.data "query"
-      @options.data_name     = @el.data "name"
+      @reset()
 
-      @options.default_value = @el.data "default_value"    || 0
-      @options.default_text  = @el.data "default_text"     || "Please select an option"
-      @options.selected_id   = @el.data "selected_id" || null
+    _registerEventHandlers: ->
+      @_addHandler @$top,          'click', @_togglePlugin
+      @_addHandler @$el,           'focus', @_togglePlugin
+      @_addHandler @$container,    'click', @_onContainerClick
+      @_addHandler @$clear_button, 'click', @_onClearButtonClick
+      @_addHandler $('html'),      'click', @_onHTMLClick
+      @_addHandler @$input,        'keyup', @_onKeyUp
+      @_addHandler @$input,        @_keyPressEventName(), @_onKeyPress
+      @_addHandler @$results_list, 'mouseenter', '.item', @_onItemMouseEnter
+      @_addHandler @$results_list, 'click',      '.item', @_activateSelectedItem
 
-      @db                    = null
-      @db_prefix             = "skr." + @options.app_name + "." + pluginName + "."
+      # Internal Events
+      @db.on 'dbcreate_start',        @_onDBCreateStart
+      @db.on 'dbcreate_end',          @_onDBCreateEnd
+      @db.on 'dbremote_search_in',    @_onDBSearchIn
+      @db.on 'dbremote_search_start', @_onDBSearchStart
+      @db.on 'dbremote_search_end',   @_onDBSearchEnd
+      @db.on 'dbremote_search_error', @_onDBSearchError
+      @db.on 'dbremote_search_reset', @_onDBSearchReset
+      @db.on 'dbsearch_results',      @_onDBSearchResults
 
-      @el_container          = null
-      @el_top                = null
-      @el_inner_container    = null
-      @el_input              = null
-      @el_list_cont          = null
-      @el_XHRCounter         = null
-      @el_loader             = null
-      @el_clear              = null
-      @el_initial_loader     = null
+    _togglePlugin: (e)=>
+      switch @state
+        when 'disabled' then return
+        when 'visible' then @_hide()
+        when 'ready'
+          ## TODO REMOVE THE IF
+          ## TODO CATCH SHIFT+TAB AND GO TO PREVIOUS FOCUSABLE ELEMENT
+          @_show() if @$inner_container.is(':visible') is false
 
-      @query                 = ""
-      @queryLength           = ""
+    _onContainerClick: (e)=> @do_not_hide_me = true
 
-      @data                  = null
-      @result_list           = null
-      @selected_item         = null
-      @items_list            = null
-      @result_to_prepend     = []
-      @no_results            = false
-      @do_not_hide_me        = false
-      @got_focused           = false
+    _onClearButtonClick: (e)=>
+      @reset()
+      @_hide()
+      return false
 
-      @createHtmlElements()
-      @makeDbPreparation()
-      @registerEventHandlers()
+    _onHTMLClick: (e)=>
+      ## TODO: REFACTOR: THIS IS REGISTERED MULTIPLE TIMES
+      if @do_not_hide_me is true then @do_not_hide_me = false else @_hide()
 
-    makeDbPreparation: ->
-      @db = Selectorablium.getLocalDBObj()
-      Selectorablium.initiateLocalData.call this
-      return
+    _onItemMouseEnter: (e)=> @_selectItem $(e.currentTarget)
 
-    createHtmlElements: ->
-      @el_container = $('<div class="selectorablium_cont">').css
-        width     : @el.outerWidth()
-        minHeight : @el.outerHeight()
+    _activateSelectedItem: (e)=>
+      if @selected_item
+        @_insertOptionElement @selected_item.data('value'), @selected_item.text()
+        @$el.trigger("change")
+      @_hide()
+      return false
 
-      HTML_string  = '<div class="top">'
-      HTML_string += '<div class="initial_loader">Loading initial data...</div>'
-      HTML_string += '<a class="cancel_button">Clear</a>'
-      HTML_string += '</div>'
-      HTML_string += '<div class="inner_container clearfix">'
-      HTML_string += '<form>'
-      HTML_string += '<input name="var_name">'
-      HTML_string += '<span class="input_icon"></span>'
-      HTML_string += '<div class="loader"></div>'
-      HTML_string += '<div class="XHRCounter"></div>'
-      HTML_string += '</form>'
-      HTML_string += '<ul class="list_container"></ul>'
-      HTML_string += '</div>'
-      @el_container.append HTML_string
-
-      @el_top             = @el_container.find(".top").css 'height', @el.outerHeight(true)
-      @el_inner_container = @el_container.find(".inner_container")
-      @el_input           = @el_container.find("input").attr("autocomplete", "off")
-      @el_list_cont       = @el_container.find(".list_container")
-      @el_XHRCounter      = @el_container.find(".XHRCounter")
-      @el_loader          = @el_container.find(".loader")
-      @el_clear           = @el_container.find(".cancel_button").css
-        'height'     : @el.outerHeight(true) + "px",
-        'lineHeight' : @el.outerHeight(true) + "px"
-
-      @el_initial_loader  = @el_container.find(".initial_loader")
-
-
-      @el.parent().css('position','relative').append @el_container
-      @el.html('<option value="' + @options.default_value + '">' + @options.default_text + '</option>')
-      @el.css
-        'borderBottomRightRadius': 0
-        'borderTopRightRadius': 0
-      return
-
-    registerEventHandlers: ->
-      @el_top.on 'click', (e) =>
-        if @el_inner_container.is(":visible")
-          @hide()
-        else
-          #WAIT FOR INITIAL DATA TO LOAD
-          if @el_top.hasClass("disabled") is false
-            @el_container.addClass("active")
-            @el.addClass("active")
-            @el_inner_container.slideDown(200)
-            @el_input.focus()
-
-        return
-
-      @el.on 'focus', (e) =>
-        if @el_inner_container.is(":visible")
-          @hide()
-        else
-          #WAIT FOR INITIAL DATA TO LOAD
-          if @el_top.hasClass("disabled") is false
-            @el_container.addClass("active")
-            @el.addClass("active")
-            @el_inner_container.slideDown(200)
-            @el_input.focus()
-
-        return
-
-      @el_container.on 'click', (e)=>
-        @do_not_hide_me = true
-        return
-
-      @el_clear.on 'click', (e)=>
-        e.stopPropagation()
-        @resetSelectItem()
-        return false
-
-      $("html").on 'click', (e)=>
-        if @do_not_hide_me is true
-          @do_not_hide_me = false
-        else
-          @hide()
-        return
-
-      if window.opera or $.browser.mozilla
-        @el_input.on 'keypress', (e) =>
-          @onKeyPress e
-      else
-        @el_input.on 'keydown', (e) =>
-          @onKeyPress e
-
-      @el_input.on 'keyup', (e) =>
-        @onKeyUp e
-
-      me = @
-      @el_list_cont.delegate '.item', 'mouseenter', (e)-> me.selectThisItem $(this)
-      @el_list_cont.delegate '.item', 'click', (e)-> me.activateTheSelectedItem()
-      return
-
-    hide: ->
-      if @el_inner_container.is(":visible")
-        @el_container.removeClass("active")
-        @el.removeClass("active")
-        @el_inner_container.slideUp(200)
-        @el_input.val("")
-        @el_list_cont.empty()
-        @el_loader.hide()
-        @el_XHRCounter.hide()
-        @selected_item = null
-        @timeout.end("RemoteSearchTimeout")
-        @query = ""
-      return
-
-    onKeyPress: (e) ->
+    _onKeyPress: (e)=>
+      ## TODO REFACTOR RETURN VALUES
       switch e.keyCode
+        when 16 then @shift_pressed = true #shift
+        when 27 then @_hide() #esc
+        when 38 then @_moveSelectedItem('up')   #up
+        when 40 then @_moveSelectedItem('down') #down
+        when 13 then @_activateSelectedItem() #enter
         when 9 #tab
-          if @selected_item
-            @activateTheSelectedItem()
-          else
-            @hide()
+          @_activateSelectedItem()
+          # if @shift_pressed focus_next_focusable()
+          # return false
           return true
-        when 27 #esc
-          @hide()
-        when 38 #up
-          @moveSelectedElement("up")
-          return false
-        when 40 #down
-          @moveSelectedElement("down")
-          return false
-        when 13 #enter
-          @activateTheSelectedItem()
-          return false
-          # if @selected_suggest_item isnt null and @suggestions_container.is(":visible")
-          #   @el.parents("form").attr( "action", @selected_suggest_item.attr("href") )
-          return true
-        when 37 #left
-          return true
-        when 39 #right
-          return true
-        when 8 #backspace
-          return true
-        else
-          return
+        else return true
+      return false
 
-      e.stopImmediatePropagation()
-      e.preventDefault()
-      return
-
-    onKeyUp: (e) ->
+    _onKeyUp: (e)=>
       switch e.keyCode
         #KEYS SHIFT, CTRL, ALT, LEFT, UP, RIGHT, DOWN, ESC, ENTER, WIN KEY, CAPS LOCK, PAGEUP, PAGEDOWN, HOME, END, INSERT, TAB
-        when 16, 17, 18, 37, 38, 39, 40, 27, 13, 91, 20, 33, 34, 35, 36, 45, 9
+        ## MAYBE JUST RETURN??
+        when 17, 18, 37, 38, 39, 40, 27, 13, 91, 20, 33, 34, 35, 36, 45, 9 then return false
+        when 16 #shift
+          @shift_pressed = false
           return false
 
-      @query = $.trim(@el_input.val())
-      @queryLength = @query.length
+      @_resetContainer()
+      @selected_item = null
 
-      if @queryLength is 0
-        @el_list_cont.empty()
-        @selected_item = null
-        @timeout.end("RemoteSearchTimeout")
-        @el_loader.hide()
-        @el_XHRCounter.hide()
-      else
-        ##BENCHMARKING STUFF##
-          # @start_timestamp = new Date().getTime()
-        query = @query
-        @beginLocalSearchFor query
-        if query.length >= @options.minCharsForRemoteSearch #and @query.indexOf(@last_invalid_query) is -1
-          @showCountdownForXHR()
-          @timeout.endAndStart =>
-              @el_loader.show()
-              @beginRemoteSearchFor query
-              return
-            , @options.XHRTimeout
-            ,"RemoteSearchTimeout"
-        else
-          @timeout.end("RemoteSearchTimeout")
-          @el_loader.hide()
-          @el_XHRCounter.hide()
-
-      return false
-
-    showCountdownForXHR: ->
-      @el_loader.hide()
-      @el_XHRCounter.stop(true, true).css("width", "0").show()
-      @el_XHRCounter.animate
-        width: "100%"
-      , @options.XHRTimeout
-      , =>
-        @el_XHRCounter.hide()
-        return
-
-      return
-
-    beginLocalSearchFor: (query) ->
-      @makeSuggestionListFor query
-      return
-
-    beginRemoteSearchFor: (query) ->
-      params = {}
-      params[@options.query_string] = query
-
-      $.getJSON @options.url, params, (response_data) =>
-        we_have_new_results = false
-        for value in response_data
-          if !@data[value.id]
-            we_have_new_results = true
-            @result_to_prepend.push {id: value.id, name: value.name}
-            @data[value.id] = value.name
-        if we_have_new_results and query is @query
-          @el_list_cont.find(".empty-message").remove()
-          @__dbSet @options.data_name + "_data", @data
-          @result_to_prepend = @result_to_prepend.sort (a,b) ->
-            if (a.name < b.name)
-                return -1
-            else
-                return 1
-          @result_to_prepend = @result_to_prepend.slice 0, @options.maxNewResultsNum
-          @insertNewResults(query)
-
-        else
-          @el_list_cont.find(".empty-message").text("No results found")
-        @el_loader.hide()
-        return
-
-      return
-
-    insertNewResults: (query) ->
-      fragment = document.createDocumentFragment()
-
-      for item in @result_to_prepend
-        li = document.createElement "li"
-        a = document.createElement "a"
-        a.className = "item"
-        a.className += " ajaxed"
-        a.setAttribute "data-value", item.id
-        a.setAttribute "href", "#"
-        a.setAttribute "style", "display:none"
-        a.appendChild document.createTextNode item.name
-        li.appendChild a
-        fragment.appendChild li
-      @el_list_cont.prepend fragment
-      @el_list_cont[0].innerHTML += ''
-
-      new_items = @el_list_cont.find(".item.ajaxed")
-
-      #make an animation for the newly brought items
-      sliding_timer = 0
-      new_items.each (index, item)=>
-        setTimeout =>
-          $(item).slideDown(70)
-          return
-        , sliding_timer
-        sliding_timer += 100
-        return
-
-      @items_list = @el_list_cont.find(".item")
-      @selected_item = @el_list_cont.find(".selected")
-
-      @highlightTextAndItems(new_items)
-      @result_to_prepend = []
-      return
-
-    removeAccents: (string) ->
-      new_string = string
-      for value in @options.list_of_replacable_chars
-        new_string = new_string.replace(value[0],value[1])
-
-      return new_string
-
-    makeSuggestionListFor: (query) ->
-      result_list = []
-      canonical_query = @removeAccents query.toLowerCase()
-      ##BENCHMARKING STUFF##
-        # count = 0
-      for own id, name of @data
-        ##BENCHMARKING STUFF##
-          # count +=1
-        ## TODO convert it to REXEXP.test
-        canonical_name = @removeAccents name.toLowerCase()
-        if @options.search_from_start is true
-          result_list.push({id: id, name: name}) if canonical_name.indexOf(canonical_query) is 0
-        else
-          result_list.push({id: id, name: name}) if canonical_name.indexOf(canonical_query) isnt -1
-      ##BENCHMARKING STUFF##
-        # console.log "searched:" + count
-
-      if result_list.length is 0
-        @no_results = true
-
-
-      result_list = result_list.sort (a,b) ->
-        if (a.name < b.name)
-          return -1
-        else
-          return 1
-        return
-
-      @result_list = result_list.slice 0, @options.maxResultsNum
-
-      @printSuggestionList(query)
-      return
-
-    printSuggestionList: () ->
-      @el_list_cont.empty()
-
-      fragment = document.createDocumentFragment()
-      if @result_list.length is 0
-        li = document.createElement "li"
-        p = document.createElement "p"
-        p.className = "empty-message"
-        p.setAttribute "href", "#"
-        if @query.length < @options.minCharsForRemoteSearch
-          p.appendChild document.createTextNode "No results found"
-        else
-          p.appendChild document.createTextNode "loading..."
-        li.appendChild p
-        fragment.appendChild li
-        @el_list_cont.append fragment
-        @el_list_cont[0].innerHTML += ''
-      else
-        for item in @result_list
-          li = document.createElement "li"
-          a = document.createElement "a"
-          a.className = "item"
-          a.setAttribute "data-value", item.id
-          a.setAttribute "href", "#"
-          a.appendChild document.createTextNode item.name
-          li.appendChild a
-          fragment.appendChild li
-        @el_list_cont.append fragment
-        @el_list_cont[0].innerHTML += ''
-
-        ##BENCHMARKING STUFF##
-          # @end_timestamp = new Date().getTime()
-          # console.log "ms for search and print:" + (parseInt(@end_timestamp,10) - parseInt(@start_timestamp,10))
-
-        @items_list = @el_list_cont.find(".item")
-
-        @selected_item = @el_list_cont.find(".item:first").addClass("selected")
-
-        @highlightTextAndItems()
-      return
-
-    highlightTextAndItems: (items) ->
-      if @query isnt ""
-        item_to_highlight = items || @items_list
-        item_to_highlight.each (index, element) =>
-          item_name = $(element).html()
-          if @query isnt ""
-
-            new_string = @query
-            for value in @options.list_of_replacable_chars
-
-              regEXP = new RegExp value[1], "ig"
-              new_string = new_string.replace regEXP, "(?:" + value[0] + "|" + value[1] + ")"
-              regEXP = null
-
-            regEXP = new RegExp "(" + new_string + ")", "ig"
-            item_name = item_name.replace(regEXP, "<span class='highlight'>$1</span>")
-            regEXP = null
-          $(element).html(item_name)
-          return
-
-      return
-
-    resetSelectItem: () ->
-      @el.html('<option value="' + @options.default_value + '">' + @options.default_text + '</option>')
-      @hide()
-      return
-
-    activateTheSelectedItem: () ->
-      @el.html('<option value="' + @selected_item.data("value") + '" selected="selected">   ' + @selected_item.text() + '</option>')
-      @el.trigger("change")
-      @hide()
-      return false
-
-    selectThisItem: (element) ->
-      if @selected_item isnt null
-        @selected_item.removeClass("selected")
-        @selected_item = null
-
-      @selected_item = element.addClass("selected")
-      return
-
-    moveSelectedElement: (direction) ->
-      count = @items_list.length
-      index = @items_list.index(@selected_item) + count
-
-      if direction is "up"
-        custom_index = index - 1
-      else if direction is "down"
-        custom_index = index + 1
-      index = custom_index % count
-
-      @selectThisItem @items_list.filter(".item:nth(" + index + ")")
-      return
-
-    setSelectItem: (params, type) ->
-      my_type = type || "refresh"
-      if typeof params is 'object'
-        value = params.value
-        text  = params.text
-      else if typeof params is 'number'
-        if @data and @data[params]
-          value = params
-          text  = @data[params]
-        else
-          if Selectorablium.makeWholeDumpXHR.call( this, {type: my_type} ) is true
-            if @data and @data[params]
-              value = params
-              text  = @data[params]
-            else
-              return false
-          else
-            return false
-
-      @el.html('<option value="' + value + '" selected="selected">   ' + text + '</option>')
-      @hide()
-      return true
-
-    refreshMyData: ->
-      if (@data = @__dbGet @options.data_name + "_data") isnt false
-        return true
-      else
+      @query = $.trim @$input.val()
+      if @query.length is 0
+        @_resetSelectedItem()
         return false
 
-    appendNewItem: (obj) ->
-      @data[obj.value] = obj.name
+      @db.search @query
+      return false
 
-      if @__dbSet(@options.data_name + "_data", @data) is false
-        @__error 'appendNewItem', "error storing '" + @options.data_name + "' newly appended data"
-        return false
+    _onDBReady: (data)=>
+      @set @config.selected_id if @config.selected_id
+      @state = 'ready'
+
+    _onDBCreateStart: =>
+      @state = 'disabled'
+      @$top_loader.show()
+      @$top.addClass 'disabled'
+
+    _onDBCreateEnd: =>
+      @$top_loader.hide()
+      @$top.removeClass 'disabled'
+
+    _onDBSearchIn: (time)=> @_showXHRCountdown time
+
+    _onDBSearchStart: =>
+      ## MAYBE REDUNDANT?
+      @_hideXHRCountdown()
+      @$XHR_loader.show()
+
+    _onDBSearchEnd: => @$XHR_loader.hide()
+
+    _onDBSearchError: (xhr)=> @$XHR_loader.hide()
+
+    _onDBSearchReset: =>
+      ## MAYBE REDUNDANT?
+      @_hideXHRCountdown()
+      @$XHR_loader.hide()
+
+    _onDBSearchResults: (results, query, xhr = false)=>
+      return unless query is @query
+
+      @_updateStructure(results, xhr)
+      @_highlightResults(query)
+
+      @$result_items = @_appendResults(query)
+      @$result_items.filter('.new').hide().slideToggle()
+
+      if (selected_item = @$result_items.filter('.selected')).length is 0
+        selected_item = @$result_items.first()
+
+      @_selectItem(selected_item)
+
+    _updateStructure:(results, xhr)->
+      @structure = []
+      new_keys = {}
+
+      for result in results
+        new_keys[result.id] = true
+        new_item =
+          id       : result.id
+          name     : result.name
+          template : ''
+          selected : false
+          fresh    : !!xhr
+
+        if @indexed_structure[result.id]
+          new_item = $.extend(new_item, @indexed_structure[result.id])
+
+        @indexed_structure[result.id] = new_item
+        @structure.push new_item
+
+      # Clean up @indexed_structure
+      for key, value of @indexed_structure
+        if !new_keys[key]
+          @indexed_structure[key] = null
+          delete @indexed_structure[key]
+
+      return @structure
+
+    _highlightResults: (query) ->
+      re = @_createAccentIndependentRE(query)
+
+      for item in @structure
+        item.template = item.name.replace(re, '<span class="highlight">$1</span>')
+
+    _appendResults: (query)->
+      @$results_list.empty()
+      @$results_list.append @_createTemplate(query)
+      return @$results_list.find('.item')
+
+    _createTemplate: (query)->
+      items_templates = []
+
+      ## TODO REFACTOR
+      if @structure.length is 0
+        text = 'No results found'
+        ## TODO: if @state isnt 'XHR'
+        # text = 'Loading...' if query.length >= @config.minCharsForRemoteSearch
+        items_templates.push "<li><p class='empty-message'>#{text}</p></li>"
       else
-        if @__dbSet(@options.data_name + "_timestamp", new Date().getTime()) is false
-          @__error 'appendNewItem', "error storing timestamp" + @options.app_name
-          return false
+        for item in @structure
+          class_name = 'item'
+          class_name += ' new' if item.fresh is true
+          class_name += ' selected' if item.selected is true
 
-      return true
+          items_templates.push "<li><a href='#' class='#{class_name}' data-value='#{item.id}'>#{item.template}</a></li>"
+          item.fresh    = false
 
-    showPreSelectedItem: ->
-      if @options.selected_id
-        @setSelectItem @options.selected_id, "preselected"
-      return
+      items_templates.join('\n')
 
-    __dbGet: (name)->
-      return @db.get @db_prefix + name
+    ## HELPERS ##
+    _createAccentIndependentRE: (query)->
+      for value in @config.list_of_replacable_chars
+        re = new RegExp "#{value[0]}|#{value[1]}", 'ig'
+        query = query.replace re, "(?:#{value[0]}|#{value[1]})"
 
-    __dbSet: (name, data)->
-      return @db.set( @db_prefix + name, data )
+      re = null
+      return new RegExp "(#{query})", 'ig'
 
-    __error: (message, func_name) ->
-      if func_name
-        x = message
-        message = func_name
-        func_name = x
+    _addHandler: ($element, on_args...)->
+      $element.on.apply $element, on_args
+      @events_handled.push [$element, on_args]
 
-      name = (if @options.app_name then @options.app_name else "[" + @name + "]" )
-      where = "@" + name + ":"
-      if func_name
-        where = func_name + where
+    ## TODO: MAYBE REMOVE THIS??
+    _keyPressEventName: ->
+      ff_ua_match = window.navigator.userAgent.match(/Firefox\/\d+\.\d+\.\d+/)
+      if window.opera or !!ff_ua_match then 'keypress' else 'keydown'
 
-      @error_reporter message, where
+    _insertOptionElement: (value, text)-> @$el.html("<option value=\"#{value}\">#{text}</option>")
 
-      return
+    _showXHRCountdown: (milliseconds)->
+      @$XHR_counter.stop(true, true).css('width', '0').show()
+      @$XHR_counter.animate {width:'100%'}, milliseconds, -> $(this).hide()
+
+    _hideXHRCountdown: -> @$XHR_counter.stop(true, true).hide()
+
+    _show: ->
+      @$container.addClass('active')
+      @$el.addClass('active')
+      @$inner_container.slideDown(200)
+      @$input.focus()
+      @state = 'visible'
+
+    _hide: ->
+      return unless @state is 'visible'
+      # CSS
+      @$container.removeClass('active')
+      @$el.removeClass('active')
+      @$inner_container.slideUp(200)
+
+      @_resetSelectedItem()
+      @_resetContainer()
+
+      ## TODO: DOES THAT TRIGGER ANOTHER EVENT?
+      @$input.val('')
+
+      # STATE
+      @query = ''
+      @state = 'ready'
+
+    _resetContainer: ->
+      @$results_list.empty()
+      @$XHR_loader.hide()
+      @_hideXHRCountdown()
+
+    _resetSelectedItem: ->
+      return unless @selected_item
+      ref = @indexed_structure[@selected_item.data('value')]
+      ref and ref.selected = false
+
+      @selected_item.removeClass('selected')
+      @selected_item = null
+
+    _selectItem: ($item)->
+      return unless $item and $item.length isnt 0
+
+      @_resetSelectedItem()
+
+      @selected_item = $item.addClass('selected')
+      @indexed_structure[$item.data('value')].selected = true
+
+    _getNextItem: (direction)->
+      count = @$result_items.length
+
+      ## TODO: REFACTOR THAT
+      index = @$result_items.index(@selected_item) + count
+      custom_index = if direction is 'up' then index - 1 else index + 1
+      new_index = custom_index % count
+
+      $(@$result_items.get(new_index))
+
+    _moveSelectedItem: (direction)->
+      return unless @selected_item
+      $item = @_getNextItem(direction)
+      @_selectItem $item
 
   return Selectorablium
