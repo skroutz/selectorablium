@@ -2,6 +2,17 @@ module.exports = function(grunt) {
   grunt.initConfig({
     pkg: grunt.file.readJSON('package.json'),
 
+    bower: {
+      install: {
+        options:{
+          install        : true,
+          copy           : false,
+          cleanTargetDir : false,
+          cleanBowerDir  : false
+        }
+      }
+    },
+
     clean: {
       dist:  {
         src: ['dist/**/*']
@@ -17,9 +28,31 @@ module.exports = function(grunt) {
       }
     },
 
+    karma: {
+      options: {
+        configFile: 'karma.conf.js',
+      },
+      background: {
+        background: true
+      },
+      single: {
+        browsers: ['PhantomJS'],
+        logLevel: 'ERROR',
+        singleRun: true
+      },
+    },
+
     watch: {
       options: {
         livereload: true,
+      },
+      specs:{
+        files: [
+          'spec/**/*_spec.coffee',
+        ],
+        tasks: [
+          'run_tests',
+        ]
       },
       coffee:{
         files: [
@@ -171,8 +204,22 @@ module.exports = function(grunt) {
     'copy:images',
   ]);
 
+  //TEST TASKS
+  grunt.registerTask('start_test_server', ['karma:background:start']);
+  grunt.registerTask('run_tests', ['karma:background:run']);
+
+
   //DEFAULT TASKS
   grunt.registerTask('cleanup', ['clean']);
-  grunt.registerTask('default', ['watch']);
-  // grunt.registerTask('test', []);
+
+  grunt.registerTask('default', [
+    'start_test_server',
+    'watch',
+  ]);
+
+  grunt.registerTask('test', [
+    'bower:install',
+    'build_css',
+    'karma:single'
+  ]);
 };

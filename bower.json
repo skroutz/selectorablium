@@ -1,0 +1,23 @@
+{
+  "name": "selectorablium",
+  "version": "0.3.2",
+  "homepage": "https://github.com/skroutz/selectorablium",
+  "authors": [
+    "Bill Trikalinos <billtrik@gmail.com>"
+  ],
+  "moduleType": [
+    "amd",
+    "globals"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "jquery": "~1.10"
+  }
+}
