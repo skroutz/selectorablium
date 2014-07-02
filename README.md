@@ -1,115 +1,155 @@
-SKROUTZ SELECTORABLIUM
-====================
+# Selectorablium.js
 
-***A "chosen" like jQuery plugin for a richer `<select>` experience***
+Make huge `<select>` elements lighter by caching out all the options to localStorage, and easier to browse with options filtering.
 
-On plugin load, it loads via XHR the initial data and stores them into the localstorage.
-It then searches the localstorage, prints sorts, and highlights the results.
-
-You can select an item from the results either by clicking with the mouse or via naviagtion with the keyboard keys and pressing enter.
-
-Tab navigation should work as if it was a native element.
-
-If the length of the query is more than a threshold value, it waits for some time, and then it makes an XHR, adds the new data (if any) to the local storage and finally displays them.
-
-It performs case-insensitive as well as accent insensitive search, regading the greek language.
-
-It is tested with more than 10.000 items stored in the localstorage, with the responce time being < 50ms.
+##Features:
+- Loads data as JSON via an XHR call and caches it inside localStorage
+- Makes extra XHR calls if queries are over a threshhold value in length
+- Filters options via an input element
+- Matches option's text
+- Matching ignores accented characters
+- Sorts matched options
+- Highlights query in option's text
+- Keyboard navigation works as expected
+- Fast
 
 
+##Installation
+```bash
+$ bower install selectorablium.js
+```
 
-##HOWTO
+## Dependencies
+- jQuery
 
-The `<select>` elements should have no options hardcoded.
+## Compatibility
+Selectorabllium depends on the **localStorage** object. If localStorage is not supported in the browser, it uses an included shim which **does not persist**. So if you run it in an old browser, the JSON data will be fetched every time.
 
-So in order for the plugin to load two things must be configured.
+# Setup
+Include jQuery, the plugin and its css:
 
-1. The `<select>` tag must have some **data-**attibutes
-2. Javascript invocation with an argument for the localstorage namespacing
+```html
+<link rel="stylesheet" href="css/selectorablium.css">
+<script src="jquery.js"></script>
+<script src="selectorablium.js"></script>
+```
 
-###1) `<select>` attibutes
+Then initialize the plugin:
 
-* data-url = "url/from/where/the/data/will/come.json" ***(required)***
-* data-query = "string_that_will_be_appended_as_a_get_param" ***(required)***
-* data-name = "string_for_ddifferentiation_inside_a_namespaced_group" ***(required)***
-* data-default_value = "string_value_for_the_default_and_reseted_option_element" ***(optional)***
-* data-default_text = "string_text_for_the_default_and_reseted_option_element" ***(optional)***
-* data-selected_id = "string_id_for_preselected_option" ***(optional)***
+```html
+<select class="selectorablium" name="my_name"></select>
 
-*example:* `<select class="selectorablium" name="customer_id" data-url="/company/customer" data-query="search" `
-`data-name="customers" data-default_value="-1" data-default_text="choose an option" data-selected_id="22"></select>`
+<script>
+  $('.selectorablium').selectorablium({
+      app_name: 'my_app', //required, for namespacing purposes
+      url: 'some_url',    //required, where the XHR will be fetched from
+      query: 'q',         //required, GET param name for the XHR queries
+      name: 'shops'       //required, name of specifix instance
+  })
+</script>
+```
 
-###2) Javascript invocation
+The `<select>` element should include no options.
 
-just include the following
+# Usage
 
-`$("select.selectorablium").Selectorablium({app_name : "my_test_app"})`
+The plugin can be configured by passing it some options. See next chapter for detailed options listing.
 
-**'app_name'** is the var that will be used for namespacing and is ***required***
+The options can be passed with two ways:
+
+**Options object on initialization**:
+
+```Javascript
+$('.selectorablium').selectorablium({
+    app_name: 'my_app',
+    url: 'some_url',
+    query: 'q',
+    name: 'shops',
+    default_value: -1,
+    default_text: 'some_text'
+})
+```
+
+**Data-attributes on `<select>` element**:
+
+```html
+<select class="selectorablium" name="my_name" data-app_name="test_app" data-url="some_url"></select>
+```
+
+> Options passed on initialization have precedence over the data-attribute options.
+
+## Options
+
+| Name | Required | Value | Default | Description |
+|------|----------|-------|---------|-------------|
+|**app_name** | **yes** | string | - | The name of the app. It is used for namespacing the data inside the localStorage.
+|**url**      | **yes** | string| - | The url where the XHRs will point to.
+|**query**    | **yes** | string | - | the GET param key for the query URL.
+|**name**     | **yes** | string | -| the name of the specific Selectorablium instance. It is used for namespacing the data inside the localStorage.
+|**default_value** | no | string&#124;number | 0 | The `value` for the default `<option>`.
+|**default_text** | no | string&#124;number | 'Please select an option' | The `text` for the default `<option>`.
+|**selected_id** | no | string&#124;number | null | On initialization, search the localStorage and create an `<option>` with this as `value` and the `text` the localStorage returns.
+|**minCharsForRemoteSearch** | no | number | 3 | When the query is  longer than this number make query XHRs.
+|**localCacheTimeout**| no | number | 604800000 *(one week)* | Milliseconds after which the localStorage is considered as invalid and needs refreshing.
+|**XHRTimeout**| no | number | 650 | Milliseconds to wait before making an XHR query call.
+|**maxResultsNum**| no | number | 10| The number of results printed
+|**list_of_replacable_chars**| no | array | [['ά', 'α'],...] | An array with accented characters and their unaccented counterpart. This is used to make smart matching on accented names even if non accented characters are used in the query
+
+## XHR Communications
+The response JSON must be an array with objects, with each object having an `id` and a `name` key-value:
+```json
+[{
+    "id": "text_or_number1",
+    "name":"text_or_number1"
+},{
+    "id": "text_or_number2",
+    "name":"text_or_number2"
+}]
+```
+
+On **first initialization** or when the localStorage needs to be **refreshed**, an XHR will be made to the `url` option. The response is expected to be the full list of `<option>` data.
+
+As the user searches for results by typing a query string on an input, and after the query is longer than the `minCharsForRemoteSearch` option, an XHR will be made.
+
+If, for example, the `url` option is 'http://some_url', the `query` option is 'q', and the query the user has typed in is 'testtest' an XHR will be made to: *http://some_url?q=testtest*
+
+## API
+The instance object of each initialized `<select>` element can be referenced through `.data('Selectorablium')`:
+
+```Javascript
+var instance = $('.selectorablium').first().data('Selectorablium')
+```
+
+#####.then(success_callback, error_callback)
+
+A `then` method is exposed so that the instance can be seen as a [thenable](http://promises-aplus.github.io/promises-spec/).
+
+The `success_callback` is executed after:
+
+* the localStorage gets initialized
+* any `selected_item` gets activated.
+
+On error, the `error_callback` is executed.
+
+#####.set(value[, text])
+
+Manually create an `<option>` element with the params passed for `value` and `text`.
+
+If only the `value` param is passed, the `text` is searched in the localStorage.
+
+#####.reset()
+
+Reset the `<select>`'s element option to the default value and text.
+
+#####.cleanup()
+
+Resets the `<select>` element the the previous state. It completely removes the plugins HTML elements, its internal event handlers and stops any XHR activity.
 
 
+## Authors
 
-##XHR
-On plugin load an initial XHR will be made to get the initial data
-It will be like:
+Bill Trikalinos (*[billtrik](https://github.com/billtrik)*)
 
-**http://`your_domain`/`data-url`/**
+## License
 
-where **your_domain** is the domain of your site or web-service and **data-url** is the value in the `<select>` attribute.
-
-Then if you type some characters and the query length is bigger than the threshold, and the timeout time passes, another XHR is made and it will be like:
-
-**http://`your_domain`/`data-url`/?`data-query`=`query`**
-
-where **your_domain** is domain of your site or web-service and **data-url** and **data-query** are the values in the according `<select>` attributes, and **query** is what the user has typed.
-
-
-
-##JSON DATA
-The received JSON data must be in the form of
-`[{"id":1,"name":"test1"},{"id":2,"name":"test2"}]`
-It must be an array of objects and each object must have an id property and a name property.
-The id is the option value and the anme is the options text.
-
-
-
-##USEFULL METHODS
-First of all, get the instance object:a
-
-`var instance_object = $("select.selectorablium:nth(0)").data('selectorablium')`
-
-* **instance_object.setSelectItem({value:9999, text:"text_for_custom_option"})** -> Manually set the selected option. If it is passed an object with 'value' and 'text' properties, it creates an option with the aforementioned data. Localstorage is not contacted at all.
-* **instance_object.setSelectItem(32)** -> Manually set the selected option. If it is passed a number, it searches the localstorage for an entry with the passed number as an ID. If none is found, it makes an XHR and completely refreshes the localstorage and then it searches again. If none is found it returns `false`. Otherwise it returns `true`. The XHR is made on synchronous mode so that it can return true or false depending on the XHR status.
-
-* **instance_object.appendNewItem({value:9999, text: "text_for_newly_appended_item"})** -> Append a new item to the inner data variable of the instanceand add it to the localstorage, thus making it instantly available to the selectorablium
-
-* **instance_object.refreshMyData()** -> Refresh the localstorage data stored inside the instance with the current localstorage values
-* **instance_object.resetSelectItem()** -> Reset the select to the default option
-
-
-
-##LOCALSTORAGE NAMESPACING
-The namespacing scheme is designed so that multiple selectorablium groups can be present in the same page.
-
-It is implemented in the form of
-**"skr" + app_name + ".selectorablium." + data-name + "." + attributes**
-
-* **app_name** is the param passed during the javascript invocation
-* **data-name** is an attribute on the element equivalent to the [name] attribute
-* **attributes** will be either 'data' or 'timestamp'
-
-They are grouped by the **app_name** during the javascript invocation and further differentiation inside the group can be made by **data-name**.
-
-
-
-##CAKEFILE
-By running cake build you can build the coffee scripts as well as minify them. Furthermore a bundle version is created (+ minified) with all the required dependencies included.
-
-**Required:** coffeescript, uglify-js *(on top of node with npm of course of course)*
-
-
-
-##Authors
-Bill Trikalinos
-
-* [https://github.com/billtrik](https://github.com/billtrik)
+This software is released under the MIT License.
