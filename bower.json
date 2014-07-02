@@ -1,7 +1,11 @@
 {
-  "name": "selectorablium",
+  "name": "selectorablium.js",
   "version": "0.3.2",
   "homepage": "https://github.com/skroutz/selectorablium",
+  "main": [
+    "dist/selectorablium.js",
+    "dist/css/selectorablium.css"
+  ],
   "authors": [
     "Bill Trikalinos <billtrik@gmail.com>"
   ],
@@ -10,12 +14,32 @@
     "globals"
   ],
   "license": "MIT",
+  "description": "A jQuery plugin that enhances <select> elements with localstorage and filtering",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/skroutz/selectorablium.git"
+  },
+  "keywords": [
+    "search",
+    "select",
+    "jquery",
+    "jquery-plugin",
+    "chosen",
+    "localstorage"
+  ],
   "ignore": [
     "**/.*",
-    "node_modules",
+    ".sass-cache",
     "bower_components",
-    "test",
-    "tests"
+    "coffee",
+    "compiled",
+    "images",
+    "node_modules",
+    "scss",
+    "spec",
+    "tasks",
+    "wrappers",
+    "karma*"
   ],
   "dependencies": {
     "jquery": "~1.10"
