@@ -1,6 +1,6 @@
 {
   "name": "selectorablium.js",
-  "version": "0.3.2",
+  "version": "1.0.0",
   "homepage": "https://github.com/skroutz/selectorablium",
   "main": [
     "dist/selectorablium.js",
