@@ -1,4 +1,4 @@
-# Selectorablium.js
+# Selectorablium.js [![Build Status](https://travis-ci.org/skroutz/selectorablium.svg?branch=master)](https://travis-ci.org/skroutz/selectorablium)
 
 Make huge `<select>` elements lighter by caching out all the options to localStorage, and easier to browse with options filtering.
 
