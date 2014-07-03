@@ -342,6 +342,63 @@ describe 'StorageFreak', ->
           expect(true).to.be.true
           done()
 
+  describe 'add', ->
+    beforeEach ->
+      @instance = @StorageFreak(@init_options)
+      obj =
+        koko: 'lala'
+        koko2: 'lala2'
+      @instance._data = obj
+      @instance._updateDB obj
+
+
+      @data = @instance._get @instance._data_key
+      @timestamp = @instance._get @instance._timestamp_key
+
+    it 'expects key as first argument and value as second', ->
+      @instance.add('lala', 'koko')
+      expect(@instance._get @instance._data_key).to.eql
+        koko: 'lala'
+        koko2: 'lala2'
+        lala: 'koko'
+
+    it 'appends data to localStorage', ->
+      @instance.add('lala', 'koko')
+      expect(@instance._get @instance._data_key).to.eql
+        koko: 'lala'
+        koko2: 'lala2'
+        lala: 'koko'
+
+    it 'appends data to @_data', ->
+      @instance.add('lala', 'koko')
+      expect(@instance._data).to.eql
+        koko: 'lala'
+        koko2: 'lala2'
+        lala: 'koko'
+
+    it 'triggers "dbupdated" event', (done)->
+      @instance.on 'dbupdated', ->
+        expect(true).to.be.true
+        done()
+
+      @instance.add('lala', 'koko')
+
+    context 'when key exists', ->
+      beforeEach ->
+        @instance.add('koko', 'different_value')
+
+      it 'does not update key with new value in localStorage', ->
+        expect(@instance._get @instance._data_key).to.eql
+          koko: 'lala'
+          koko2: 'lala2'
+
+      it 'does not update key with new value in @instance._data', ->
+        expect(@instance._data).to.eql
+          koko: 'lala'
+          koko2: 'lala2'
+
+
+
   describe 'searchByKey', ->
     beforeEach ->
       @instance = @StorageFreak(@init_options)

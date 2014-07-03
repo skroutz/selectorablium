@@ -108,6 +108,8 @@ define [
       @_hide()
       return true
 
+    add: (key, value)-> @db.add(key, value)
+
     ## PRIVATE ##
     _createHtmlElements: ->
       @$el.wrap $('<div class="selectorablium_outer_cont">')

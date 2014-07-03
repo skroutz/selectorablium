@@ -59,6 +59,13 @@ define [
         @_data = @_get @_data_key
         return new $.Deferred().resolve()
 
+    add: (key, value)->
+      return if @_data[key]
+      new_data = {}
+      new_data[key] = value
+      @_data = $.extend {}, @_data, new_data
+      @_updateDB @_data
+
     searchByKey: (key)-> @_data[key] or false
 
     ###*

@@ -131,6 +131,11 @@ The `success_callback` is executed after:
 
 On error, the `error_callback` is executed.
 
+#####.add(value, text)
+
+Persist to localStorage the passed data. Subsequent searches will find and show that data
+If value is already present in the localStorage, then the text is not updated.
+
 #####.set(value[, text])
 
 Manually create an `<option>` element with the params passed for `value` and `text`.

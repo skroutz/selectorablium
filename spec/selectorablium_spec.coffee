@@ -45,6 +45,7 @@ describe 'Selectorablium', ->
       searchByKey: ->
       search: ->
       cleanup: ->
+      add: ->
 
     @storage_mock = StorageFreak
     @storage_spy = sinon.spy this, 'storage_mock'
@@ -129,8 +130,9 @@ describe 'Selectorablium', ->
 
   describe '.constructor', ->
     it 'returns an instance when called without new', ->
-      @instance = @Selectorablium(@$el, @options)
-      expect(@instance).to.be.an.instanceof(@Selectorablium)
+      instance = @Selectorablium(@$el, @options)
+      expect(instance).to.be.an.instanceof(@Selectorablium)
+      instance.cleanup()
 
     it 'thows if no element is given', ->
       expect(@Selectorablium).to.throw(/Element argument is required/)
@@ -149,26 +151,12 @@ describe 'Selectorablium', ->
     it 'creates HTML', ->
       @init()
 
-      template = """<div class="selectorablium_outer_cont"><div class="selectorablium_outer_cont"><select class="selectorablium shops" name="eshop_id" data-url="shops.json" data-query="query" data-name="shops" data-default_value="" data-default_text="Choose eshop" data-selected_id="3"><option value="">Choose eshop</option></select><div class="selectorablium_cont">
+      template = """<div class="selectorablium_outer_cont"><select class="selectorablium shops" name="eshop_id" data-url="shops.json" data-query="query" data-name="shops" data-default_value="" data-default_text="Choose eshop" data-selected_id="3"><option value="">Choose eshop</option></select><div class="selectorablium_cont">
         <div class="top">
           <div class="initial_loader">Loading initial data...</div>
           <a class="clear_button">Clear</a>
         </div>
-        <div class="inner_container clearfix">
-          <form>
-            <input autocomplete="off" name="var_name">
-            <span class="input_icon"></span>
-            <div class="loader"></div>
-            <div class="XHRCounter"></div>
-          </form>
-          <ul class="list_container"></ul>
-        </div>
-      </div></div><div class="selectorablium_cont">
-        <div class="top">
-          <div class="initial_loader">Loading initial data...</div>
-          <a class="clear_button">Clear</a>
-        </div>
-        <div class="inner_container clearfix">
+        <div class="inner_container">
           <form>
             <input autocomplete="off" name="var_name">
             <span class="input_icon"></span>
@@ -548,6 +536,20 @@ describe 'Selectorablium', ->
 
           $selected_el = @instance.$results_list.find('.selected')
           expect(@instance.$results_list.find('.item').index($selected_el)).to.equal(2)
+
+  describe 'add', ->
+    beforeEach ->
+      @storage_add_spy = sinon.spy @storage_mock::,  'add'
+      @instance = @Selectorablium(@$el, @options)
+      @key = 10101
+      @value = 'test'
+
+    afterEach ->
+      @storage_add_spy.restore()
+
+    it 'calls @db\'s add', ->
+      @instance.add @key, @value
+      expect(@storage_add_spy.args[0]).to.eql [@key, @value]
 
   xdescribe '#_hideXHRCountdown', ->
   xdescribe '#_showXHRCountdown', ->
