@@ -203,14 +203,4 @@
       }
     }
   }
-
-  .clearfix {
-    zoom: 1;
-    &:after{
-      clear: both;
-    }
-    &:after, &:before{
-      content: ""; display: table;
-    }
-  }
 }

@@ -39,7 +39,7 @@ define [
             <div class="initial_loader">Loading initial data...</div>
             <a class="clear_button">Clear</a>
           </div>
-          <div class="inner_container clearfix">
+          <div class="inner_container">
             <form>
               <input autocomplete="off" name="var_name">
               <span class="input_icon"></span>
