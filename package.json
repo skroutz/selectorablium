@@ -1,6 +1,6 @@
 {
   "name": "selectorablium",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "A jQuery plugin that enhances <select> elements with localstorage and filtering",
   "main": "dist/selectorablium.js",
   "scripts": {
