@@ -37,6 +37,7 @@
     "grunt-contrib-sass": "^0.8.1",
     "grunt-contrib-uglify": "^0.6.0",
     "grunt-contrib-watch": "^0.6.1",
+    "grunt-shell": "^1.1.1",
     "load-grunt-tasks": "^0.6.0",
     "requirejs": "^2.1.15"
   },

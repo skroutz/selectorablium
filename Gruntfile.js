@@ -192,11 +192,38 @@ module.exports = function(grunt) {
         }],
       },
     },
+
+    shell: {
+      bump: {
+        command: function(type){
+          return [
+            'git checkout dist',
+            'git reset --hard origin/master',
+            'npm run build',
+            'git add -f dist',
+            'git commit -m "Create Dist files"',
+            'git push origin dist -f',
+            'grunt bump:' + type,
+            'git checkout master',
+            'git cherry-pick origin/dist',
+            'git push origin master'
+          ].join('&&')
+        }
+      }
+    }
   });
 
   require('load-grunt-tasks')(grunt);
   grunt.loadTasks( "tasks" );
 
+  grunt.registerTask('publish', 'Publish new bower package version.', function(type) {
+    if (/^(patch|minor|major)$/.test(type) === false) {
+      grunt.warn('Version bump type must be specified. \nex: grunt publish:(patch|minor|major)\n\n');
+    }
+    else{
+      grunt.task.run('shell:bump:' + type);
+    }
+  });
 
   grunt.registerTask('build_css', [
     'sass'

@@ -150,6 +150,19 @@ Reset the `<select>`'s element option to the default value and text.
 
 Resets the `<select>` element the the previous state. It completely removes the plugins HTML elements, its internal event handlers and stops any XHR activity.
 
+## Updating Bower package
+
+Just execute
+
+```bash
+$ grunt publish:<type>
+```
+
+with type being the semver values:
+
+* patch
+* minor
+* major
 
 ## Authors
 
