@@ -16,7 +16,7 @@ module.exports = function(config) {
     // list of files / patterns to load in the browser
     files: [
       'dist/css/selectorablium.css',
-      'bower_components/jquery/jquery.js',
+      'bower_components/jquery/dist/jquery.js',
       'karma_requirejs_helper.js',
       {pattern: 'spec/fixtures/**/*'},
       {pattern: 'coffee/**/*.coffee', included: false},

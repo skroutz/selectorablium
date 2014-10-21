@@ -41,7 +41,7 @@
     "wrappers",
     "karma*"
   ],
-  "dependencies": {
-    "jquery": "~1.10"
+  "devDependencies": {
+    "jquery": "*"
   }
 }
