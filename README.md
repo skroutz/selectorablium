@@ -1,4 +1,4 @@
-# Selectorablium.js [![Build Status](https://travis-ci.org/skroutz/selectorablium.svg?branch=master)](https://travis-ci.org/skroutz/selectorablium) [![Bower version](https://badge.fury.io/bo/selectorablium.js.svg)](http://badge.fury.io/bo/selectorablium.js)
+# Selectorablium [![Build Status](https://travis-ci.org/skroutz/selectorablium.svg?branch=master)](https://travis-ci.org/skroutz/selectorablium) [![Bower version](https://badge.fury.io/bo/selectorablium.svg)](http://badge.fury.io/bo/selectorablium)
 
 Make huge `<select>` elements lighter by caching out all the options to localStorage, and easier to browse with options filtering.
 
@@ -16,7 +16,7 @@ Make huge `<select>` elements lighter by caching out all the options to localSto
 
 ##Installation
 ```bash
-$ bower install selectorablium.js
+$ bower install selectorablium
 ```
 
 ## Dependencies
