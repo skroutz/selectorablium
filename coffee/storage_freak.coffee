@@ -183,9 +183,7 @@ define [
         query = query.replace re, "(?:#{value[0]}|#{value[1]})"
 
       re = null
-      return new RegExp "^#{query}", 'ig'
-
-
+      return new RegExp "#{query}", 'ig'
 
     ## REFACTOR THOSE
     ## MAYBE REMOVE THOSE??
