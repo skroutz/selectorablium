@@ -10,10 +10,12 @@ define [
     _defaults:
       namespace  : 'selectorablium'
       sort_func  : (a,b)-> if a.name < b.name then -1 else 1
-      match_func : (RE, name)->
+      match_func : ((RE, name)->
         result = RE.test(name)
         RE.lastIndex = 0
-        return result
+        return result)
+
+      search_type: 'infix'
 
     _required: [
       'url'
@@ -112,8 +114,9 @@ define [
       results = []
       match_func = options.match_func or @config.match_func
       sort_func  = options.sort_func or @config.sort_func
+      search_type = options.search_type or @config.search_type
 
-      re = @_createAccentIndependentRE(query)
+      re = @_createAccentIndependentRE(query, @config.search_type)
       for id, name of @_data
         results.push({id: id, name: name}) if match_func(re, name)
 
@@ -177,15 +180,15 @@ define [
       @_set @_timestamp_key, new Date().getTime()
       @_trigger 'dbupdated'
 
-    _createAccentIndependentRE: (query)->
+    _createAccentIndependentRE: (query, type = 'infix')->
       for value in @config.list_of_replacable_chars
         re = new RegExp "#{value[0]}|#{value[1]}", 'ig'
         query = query.replace re, "(?:#{value[0]}|#{value[1]})"
 
       re = null
-      return new RegExp "^#{query}", 'ig'
 
-
+      return new RegExp "#{query}", 'ig' if type == "infix"
+      return new RegExp "^#{query}", 'ig' if type == "prefix"
 
     ## REFACTOR THOSE
     ## MAYBE REMOVE THOSE??

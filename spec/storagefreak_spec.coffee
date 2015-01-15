@@ -425,6 +425,41 @@ describe 'StorageFreak', ->
       @instance.search('as')
       expect(spy).to.not.be.called
 
+    it 'matches only infix data by default', (done)->
+      @instance._data = {
+        add: 'addasjjjj'
+        asd: 'asd'
+        as: 'as'
+      }
+
+      @instance.on 'dbsearch_results', (data, query, remote = false)->
+        expect(data)
+          .to.be.an('array')
+          .to.have.length(3)
+        done()
+
+      @instance.search("as")
+
+    context 'with search_type option set to prefix', ->
+      beforeEach ->
+        @init_options.search_type = 'prefix'
+        @instance = @StorageFreak(@init_options)
+
+      it 'matches prefix', (done)->
+        @instance._data = {
+          add: 'addas'
+          asd: 'asd'
+          as: 'as'
+        }
+
+        @instance.on 'dbsearch_results', (data, query, remote = false)->
+          expect(data)
+            .to.be.an('array')
+            .to.have.length(2)
+          done()
+
+        @instance.search('as')
+
     it 'searches in-memory data', (done)->
       @instance._data = {
         add: 'add'
