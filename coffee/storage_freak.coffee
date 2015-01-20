@@ -7,14 +7,60 @@ define [
   # $.getScript "assets/json2.js" if StorageFreak.JSON_support() is false
 
   class StorageFreak
+    # Sorts by exact query matching
+    absolute_sort = (query, a, b) ->
+      re_abs = @_createAccentIndependentRE(query, 'absolute')
+
+      ((abs_match_a, abs_match_b) ->
+        return -1 if abs_match_a
+        return  1 if abs_match_b)(@config.match_func(re_abs, a.name),
+                                  @config.match_func(re_abs, b.name))
+
+    # Sorts by matching an exact token of the query
+    token_sort = (query, a, b) ->
+      re_t = @_createAccentIndependentRE(query, 'token')
+
+      ((token_match_a, token_match_b) ->
+          return -1 if token_match_a && !token_match_b
+          return  1 if token_match_b && !token_match_a)(@config.match_func(re_t, a.name),
+                                                        @config.match_func(re_t, b.name))
+
+    # Sorts by matching query prefix
+    prefix_sort = (query, a, b) ->
+      re_p = @_createAccentIndependentRE(query, 'prefix')
+
+      ((prefix_match_a, prefix_match_b) ->
+        return -1 if prefix_match_a && !prefix_match_b
+        return  1 if prefix_match_b && !prefix_match_a)(@config.match_func(re_p, a.name),
+                                                        @config.match_func(re_p, b.name))
+
+    # Sorts by aphabetical order
+    lexicographical_sort = (a, b) ->
+      return -1 if a.name < b.name
+      return  1 if b.name < a.name
+
+    # Comparison function of the default sorting algorithm
+    # Compares a to b with respect to the query given by the user
+    # Uses in order absolute, token, prefix and lexicographical sorting
+    fuzzy_sort = (query, a, b) ->
+      abs_result = absolute_sort.call(@, query, a, b)
+      return abs_result   if abs_result
+
+      token_result = token_sort.call(@, query, a, b)
+      return token_result if token_result
+
+      prefix_result = prefix_sort.call(@, query, a, b)
+      return prefix_result if prefix_result
+
+      lexicographical_sort(a, b)
+
     _defaults:
       namespace  : 'selectorablium'
-      sort_func  : (a,b)-> if a.name < b.name then -1 else 1
+      sort_func: ((query, a, b) -> fuzzy_sort.call(@, query, a, b))
       match_func : ((RE, name)->
         result = RE.test(name)
         RE.lastIndex = 0
         return result)
-
       search_type: 'infix'
 
     _required: [
@@ -34,6 +80,8 @@ define [
 
       @options = options
       @config  = $.extend {}, @_defaults, @options
+      @config[k] = $.proxy(v, @) for k, v of @config when $.type(v) is 'function'
+
       for attr in @_required
         throw new Error("'#{attr}' option is required") if !@config[attr]
 
@@ -120,7 +168,7 @@ define [
       for id, name of @_data
         results.push({id: id, name: name}) if match_func(re, name)
 
-      results = results.sort sort_func
+      results = results.sort ((a, b) => sort_func(query, a, b))
       results.slice 0, @config.maxResultsNum
 
     _getRemoteData: (query, options)->
@@ -185,8 +233,10 @@ define [
         re = new RegExp "#{value[0]}|#{value[1]}", 'ig'
         query = query.replace re, "(?:#{value[0]}|#{value[1]})"
 
-      return new RegExp "#{query}", 'ig' if type == "infix"
-      return new RegExp "^#{query}", 'ig' if type == "prefix"
+      return new RegExp "#{query}", 'ig'        if type == 'infix'
+      return new RegExp "^#{query}", 'ig'       if type == 'prefix'
+      return new RegExp "\\b#{query}\\b", 'ig'  if type == 'token'
+      return new RegExp "^#{query}$", 'ig'      if type == 'absolute'
 
     ## REFACTOR THOSE
     ## MAYBE REMOVE THOSE??
