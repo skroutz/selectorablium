@@ -190,6 +190,7 @@ define [
       return new RegExp "#{query}", 'ig'        if type == 'infix'
       return new RegExp "^#{query}", 'ig'       if type == 'prefix'
       return new RegExp "\\b#{query}\\b", 'ig'  if type == 'token'
+      return new RegExp "^#{query}$", 'ig'      if type == 'absolute'
 
     ## REFACTOR THOSE
     ## MAYBE REMOVE THOSE??
