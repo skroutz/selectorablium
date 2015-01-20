@@ -185,8 +185,6 @@ define [
         re = new RegExp "#{value[0]}|#{value[1]}", 'ig'
         query = query.replace re, "(?:#{value[0]}|#{value[1]})"
 
-      re = null
-
       return new RegExp "#{query}", 'ig' if type == "infix"
       return new RegExp "^#{query}", 'ig' if type == "prefix"
 
