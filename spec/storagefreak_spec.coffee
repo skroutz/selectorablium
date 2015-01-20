@@ -514,20 +514,31 @@ describe 'StorageFreak', ->
 
       @instance.search('as')
 
-    it 'sorts results', (done)->
+    it 'sorts results by absolute matches, token matches, prefix matches', (done)->
       @instance._data =
-        asd: 'asd'
-        add: 'add'
-        as: 'as'
+        k1: 'skyram'
+        k2: 'abraram'
+        k3: 'mr ram'
+        k4: 'babaoram'
+        k5: 'rambo'
+        k6: 'ram mania'
+        k7: 'ram'
+
+      @instance.config.maxResultsNum = 7
 
       @instance.on 'dbsearch_results', (data)->
         expect(data).to.deep.equal [
-          { id: 'as', name: 'as' },
-          { id: 'asd', name: 'asd' }
+          { id: 'k7', name: 'ram' },
+          { id: 'k6', name: 'ram mania' },
+          { id: 'k3', name: 'mr ram' }
+          { id: 'k5', name: 'rambo' }
+          { id: 'k2', name: 'abraram' }
+          { id: 'k4', name: 'babaoram' }
+          { id: 'k1', name: 'skyram' }
         ]
         done()
 
-      @instance.search('as')
+      @instance.search('ram')
 
     it 'slices results', (done)->
       @instance._data =

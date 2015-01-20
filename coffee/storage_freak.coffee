@@ -56,12 +56,11 @@ define [
 
     _defaults:
       namespace  : 'selectorablium'
-      sort_func  : (a,b)-> if a.name < b.name then -1 else 1
+      sort_func: ((query, a, b) -> fuzzy_sort.call(@, query, a, b))
       match_func : ((RE, name)->
         result = RE.test(name)
         RE.lastIndex = 0
         return result)
-
       search_type: 'infix'
 
     _required: [
@@ -169,7 +168,7 @@ define [
       for id, name of @_data
         results.push({id: id, name: name}) if match_func(re, name)
 
-      results = results.sort sort_func
+      results = results.sort ((a, b) => sort_func(query, a, b))
       results.slice 0, @config.maxResultsNum
 
     _getRemoteData: (query, options)->
