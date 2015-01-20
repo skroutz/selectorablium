@@ -104,6 +104,15 @@ describe 'StorageFreak', ->
       @instance = @StorageFreak(@init_options)
       expect(@instance._storage).to.be.empty
 
+    it 'binds config functions to instance', ->
+      jquery_proxy_spy = sinon.spy $, 'proxy'
+      a_config_function = -> ''
+
+      @instance = @StorageFreak($.extend @init_options, some_option: a_config_function)
+
+      expect(jquery_proxy_spy).to.be.calledWith a_config_function
+      jquery_proxy_spy.restore()
+
     context 'when window.localStorage is available', ->
       beforeEach ->
         if !window.localStorage

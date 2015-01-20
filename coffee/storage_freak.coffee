@@ -34,6 +34,8 @@ define [
 
       @options = options
       @config  = $.extend {}, @_defaults, @options
+      @config[k] = $.proxy(v, @) for k, v of @config when $.type(v) is 'function'
+
       for attr in @_required
         throw new Error("'#{attr}' option is required") if !@config[attr]
 
