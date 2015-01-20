@@ -39,6 +39,21 @@ define [
       return -1 if a.name < b.name
       return  1 if b.name < a.name
 
+    # Comparison function of the default sorting algorithm
+    # Compares a to b with respect to the query given by the user
+    # Uses in order absolute, token, prefix and lexicographical sorting
+    fuzzy_sort = (query, a, b) ->
+      abs_result = absolute_sort.call(@, query, a, b)
+      return abs_result   if abs_result
+
+      token_result = token_sort.call(@, query, a, b)
+      return token_result if token_result
+
+      prefix_result = prefix_sort.call(@, query, a, b)
+      return prefix_result if prefix_result
+
+      lexicographical_sort(a, b)
+
     _defaults:
       namespace  : 'selectorablium'
       sort_func  : (a,b)-> if a.name < b.name then -1 else 1
