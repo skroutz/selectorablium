@@ -16,6 +16,15 @@ define [
         return  1 if abs_match_b)(@config.match_func(re_abs, a.name),
                                   @config.match_func(re_abs, b.name))
 
+    # Sorts by matching an exact token of the query
+    token_sort = (query, a, b) ->
+      re_t = @_createAccentIndependentRE(query, 'token')
+
+      ((token_match_a, token_match_b) ->
+          return -1 if token_match_a && !token_match_b
+          return  1 if token_match_b && !token_match_a)(@config.match_func(re_t, a.name),
+                                                        @config.match_func(re_t, b.name))
+
     _defaults:
       namespace  : 'selectorablium'
       sort_func  : (a,b)-> if a.name < b.name then -1 else 1
