@@ -187,8 +187,9 @@ define [
         re = new RegExp "#{value[0]}|#{value[1]}", 'ig'
         query = query.replace re, "(?:#{value[0]}|#{value[1]})"
 
-      return new RegExp "#{query}", 'ig' if type == "infix"
-      return new RegExp "^#{query}", 'ig' if type == "prefix"
+      return new RegExp "#{query}", 'ig'        if type == 'infix'
+      return new RegExp "^#{query}", 'ig'       if type == 'prefix'
+      return new RegExp "\\b#{query}\\b", 'ig'  if type == 'token'
 
     ## REFACTOR THOSE
     ## MAYBE REMOVE THOSE??
