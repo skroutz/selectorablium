@@ -34,6 +34,10 @@ define [
         return  1 if prefix_match_b && !prefix_match_a)(@config.match_func(re_p, a.name),
                                                         @config.match_func(re_p, b.name))
 
+    # Sorts by aphabetical order
+    lexicographical_sort = (a, b) ->
+      return -1 if a.name < b.name
+      return  1 if b.name < a.name
 
     _defaults:
       namespace  : 'selectorablium'
