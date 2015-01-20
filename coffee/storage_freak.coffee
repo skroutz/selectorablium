@@ -7,6 +7,15 @@ define [
   # $.getScript "assets/json2.js" if StorageFreak.JSON_support() is false
 
   class StorageFreak
+    # Sorts by exact query matching
+    absolute_sort = (query, a, b) ->
+      re_abs = @_createAccentIndependentRE(query, 'absolute')
+
+      ((abs_match_a, abs_match_b) ->
+        return -1 if abs_match_a
+        return  1 if abs_match_b)(@config.match_func(re_abs, a.name),
+                                  @config.match_func(re_abs, b.name))
+
     _defaults:
       namespace  : 'selectorablium'
       sort_func  : (a,b)-> if a.name < b.name then -1 else 1
