@@ -77,7 +77,7 @@ describe 'StorageFreak', ->
       @instance = @StorageFreak(@init_options)
       expect(@instance).to.be.instanceof(@StorageFreak)
 
-    it 'thows if not all required options are given', ->
+    it 'throws if not all required options are given', ->
       expect(@StorageFreak).to.throw(/option is required/)
 
     it 'creates @_db_prefix', ->
