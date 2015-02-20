@@ -164,7 +164,9 @@ define [
       sort_func  = options.sort_func or @config.sort_func
       search_type = options.search_type or @config.search_type
 
-      re = @_createAccentIndependentRE(query, @config.search_type)
+      query = @_createAccentIndependentQuery(query)
+
+      re = @_createQueryRE(query, @config.search_type)
       for id, name of @_data
         results.push({id: id, name: name}) if match_func(re, name)
 
@@ -228,11 +230,14 @@ define [
       @_set @_timestamp_key, new Date().getTime()
       @_trigger 'dbupdated'
 
-    _createAccentIndependentRE: (query, type = 'infix')->
+    _createAccentIndependentQuery: (query)->
       for value in @config.list_of_replacable_chars
         re = new RegExp "#{value[0]}|#{value[1]}", 'ig'
         query = query.replace re, "(?:#{value[0]}|#{value[1]})"
 
+      return query
+
+    _createQueryRE: (query, type = 'infix')->
       return new RegExp "#{query}", 'ig'        if type == 'infix'
       return new RegExp "^#{query}", 'ig'       if type == 'prefix'
       return new RegExp "\\b#{query}\\b", 'ig'  if type == 'token'
