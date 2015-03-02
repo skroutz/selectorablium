@@ -484,7 +484,20 @@ describe 'StorageFreak', ->
 
       @instance.search('as')
 
-    xit 'matches accented characters ignoring their accent', ->
+    it 'matches accented characters ignoring their accent', (done)->
+      @instance._data = {
+        as: 'λολο'
+        asd: 'λόλο'
+        add: 'λαλα'
+      }
+
+      @instance.on 'dbsearch_results', (data, query)->
+        expect(data)
+          .to.be.an('array')
+          .to.have.length(2)
+        done()
+
+      @instance.search('λολο')
 
     it 'triggers "dbsearch_results" event and passes results', (done)->
       @instance._data = {
