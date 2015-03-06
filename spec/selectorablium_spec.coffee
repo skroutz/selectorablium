@@ -303,6 +303,10 @@ describe 'Selectorablium', ->
         beforeEach ->
           @event = jQuery.Event 'keyup', { keyCode: 55 }
           @trigger = => @instance.$input.triggerHandler @event
+          @clock = sinon.useFakeTimers()
+
+        afterEach ->
+          @clock.restore()
 
         context 'when key is not a character', ->
           beforeEach ->
@@ -338,6 +342,8 @@ describe 'Selectorablium', ->
 
           it 'searches for the query in the storage', ->
             @trigger()
+            @clock.tick(@instance.config.debounceInterval);
+
             expect(@storage_search_spy).to.be.calledOnce
 
       context 'on keypress', ->

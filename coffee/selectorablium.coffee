@@ -8,6 +8,7 @@ define [
       minCharsForRemoteSearch  : 3
       localCacheTimeout        : 7 * 24 * 60 * 60 * 1000 #milliseconds #one week
       XHRTimeout               : 650 #milliseconds
+      debounceInterval         : 150 #milliseconds
       maxResultsNum            : 10
       default_value            : 0
       default_text             : 'Please select an option'
@@ -50,6 +51,8 @@ define [
           </div>
         </div>
       """
+
+    timer: 0
 
     constructor: (element, options)->
       return new Selectorablium(element, options) if @ instanceof Selectorablium is false
@@ -211,7 +214,11 @@ define [
         @_resetSelectedItem()
         return false
 
-      @db.search @query
+      search_func = => @db.search @query
+
+      clearTimeout @timer
+      @timer = setTimeout search_func, @config.debounceInterval
+
       return false
 
     _onDBReady: (data)=>
