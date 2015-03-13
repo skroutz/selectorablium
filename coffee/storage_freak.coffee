@@ -7,32 +7,12 @@ define [
   # $.getScript "assets/json2.js" if StorageFreak.JSON_support() is false
 
   class StorageFreak
-    # Sorts by exact query matching
-    absolute_sort = (query, a, b) ->
-      re_abs = @_createAccentIndependentRE(query, 'absolute')
-
-      ((abs_match_a, abs_match_b) ->
-        return -1 if abs_match_a
-        return  1 if abs_match_b)(@config.match_func(re_abs, a.name),
-                                  @config.match_func(re_abs, b.name))
-
-    # Sorts by matching an exact token of the query
-    token_sort = (query, a, b) ->
-      re_t = @_createAccentIndependentRE(query, 'token')
-
-      ((token_match_a, token_match_b) ->
-          return -1 if token_match_a && !token_match_b
-          return  1 if token_match_b && !token_match_a)(@config.match_func(re_t, a.name),
-                                                        @config.match_func(re_t, b.name))
-
-    # Sorts by matching query prefix
-    prefix_sort = (query, a, b) ->
-      re_p = @_createAccentIndependentRE(query, 'prefix')
-
-      ((prefix_match_a, prefix_match_b) ->
-        return -1 if prefix_match_a && !prefix_match_b
-        return  1 if prefix_match_b && !prefix_match_a)(@config.match_func(re_p, a.name),
-                                                        @config.match_func(re_p, b.name))
+    # Sorts by regular expression matching
+    regexp_sort = (re, a, b) ->
+      ((re_match_a, re_match_b) ->
+        return -1 if re_match_a && !re_match_b
+        return  1 if re_match_b && !re_match_a)(@config.match_func(re, a.name),
+                                                @config.match_func(re, b.name))
 
     # Sorts by aphabetical order
     lexicographical_sort = (a, b) ->
@@ -43,14 +23,11 @@ define [
     # Compares a to b with respect to the query given by the user
     # Uses in order absolute, token, prefix and lexicographical sorting
     fuzzy_sort = (query, a, b) ->
-      abs_result = absolute_sort.call(@, query, a, b)
-      return abs_result   if abs_result
+      @sort_criteria_res ||= @_createSortingREs(query)
 
-      token_result = token_sort.call(@, query, a, b)
-      return token_result if token_result
-
-      prefix_result = prefix_sort.call(@, query, a, b)
-      return prefix_result if prefix_result
+      for re in @sort_criteria_res
+        regexp_result = regexp_sort.call(@, re, a, b)
+        return regexp_result if regexp_result
 
       lexicographical_sort(a, b)
 
@@ -164,11 +141,13 @@ define [
       sort_func  = options.sort_func or @config.sort_func
       search_type = options.search_type or @config.search_type
 
-      re = @_createAccentIndependentRE(query, @config.search_type)
+      query = @_createAccentIndependentQuery(query)
+
+      re = @_createQueryRE(query, @config.search_type)
       for id, name of @_data
         results.push({id: id, name: name}) if match_func(re, name)
 
-      results = results.sort ((a, b) => sort_func(query, a, b))
+      results = results.sort ((a, b) -> sort_func(query, a, b))
       results.slice 0, @config.maxResultsNum
 
     _getRemoteData: (query, options)->
@@ -228,15 +207,25 @@ define [
       @_set @_timestamp_key, new Date().getTime()
       @_trigger 'dbupdated'
 
-    _createAccentIndependentRE: (query, type = 'infix')->
+    _createAccentIndependentQuery: (query)->
       for value in @config.list_of_replacable_chars
         re = new RegExp "#{value[0]}|#{value[1]}", 'ig'
         query = query.replace re, "(?:#{value[0]}|#{value[1]})"
 
+      query
+
+    _createQueryRE: (query, type = 'infix')->
       return new RegExp "#{query}", 'ig'        if type == 'infix'
       return new RegExp "^#{query}", 'ig'       if type == 'prefix'
       return new RegExp "\\b#{query}\\b", 'ig'  if type == 'token'
       return new RegExp "^#{query}$", 'ig'      if type == 'absolute'
+
+    _createSortingREs: (query)->
+      re_abs = @_createQueryRE(query, 'absolute')
+      re_t = @_createQueryRE(query, 'token')
+      re_p = @_createQueryRE(query, 'prefix')
+
+      [re_abs, re_t, re_p]
 
     ## REFACTOR THOSE
     ## MAYBE REMOVE THOSE??
