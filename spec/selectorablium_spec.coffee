@@ -232,6 +232,12 @@ describe 'Selectorablium', ->
           @trigger()
           expect(@hide_spy).to.be.calledOnce
 
+        it 'triggers the change event on the select element', ->
+          spy = sinon.spy()
+          @instance.$el.one 'change', spy
+          @trigger()
+          expect(spy).to.be.calledOnce
+
     context 'html element', ->
       context 'on click', ->
         beforeEach ->

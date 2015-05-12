@@ -164,9 +164,13 @@ define [
     _onContainerClick: (e)=> @do_not_hide_me = true
 
     _onClearButtonClick: (e)=>
+      @_clearSelectedItem(e)
+      return false
+
+    _clearSelectedItem: (e)=>
       @reset()
       @_hide()
-      return false
+      @$el.trigger("change")
 
     _onHTMLClick: (e)=>
       ## TODO: REFACTOR: THIS IS REGISTERED MULTIPLE TIMES
