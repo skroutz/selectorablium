@@ -27,6 +27,7 @@ define [
 
       for re in @sort_criteria_res
         regexp_result = regexp_sort.call(@, re, a, b)
+        re.lastIndex = 0
         return regexp_result if regexp_result
 
       lexicographical_sort(a, b)
@@ -147,6 +148,7 @@ define [
       for id, name of @_data
         results.push({id: id, name: name}) if match_func(re, name)
 
+      @_resetSortingREs()
       results = results.sort ((a, b) -> sort_func(query, a, b))
       results.slice 0, @config.maxResultsNum
 
@@ -226,6 +228,9 @@ define [
       re_p = @_createQueryRE(query, 'prefix')
 
       [re_abs, re_t, re_p]
+
+    _resetSortingREs: ->
+      @sort_criteria_res = null
 
     ## REFACTOR THOSE
     ## MAYBE REMOVE THOSE??
