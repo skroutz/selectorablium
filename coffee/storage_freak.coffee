@@ -2,9 +2,6 @@ define [
   'jquery'
   'shims/local_storage_shim'
 ], ($, LocalStorageShim)->
-  # TODO ADD JSON2 SHIM
-  #jQuery Stuff
-  # $.getScript "assets/json2.js" if StorageFreak.JSON_support() is false
 
   class StorageFreak
     # Sorts by regular expression matching
