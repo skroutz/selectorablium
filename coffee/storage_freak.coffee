@@ -84,14 +84,17 @@ define [
         @_data = @_get @_data_key
         return new $.Deferred().resolve()
 
-    add: (key, value)->
-      return if @_data[key]
+    add: (value, text)->
+      return if @_data[text]
       new_data = {}
-      new_data[key] = value
+      new_data[text] = value
       @_data = $.extend {}, @_data, new_data
       @_updateDB @_data
 
-    searchByKey: (key)-> @_data[key] or false
+    searchByValue: (val) ->
+      for text, value of @_data
+        return text if value == val
+      return false
 
     ###*
      * The main API method.
@@ -142,7 +145,7 @@ define [
       query = @_createAccentIndependentQuery(query)
 
       re = @_createQueryRE(query, @config.search_type)
-      for id, name of @_data
+      for name, id of @_data
         results.push({id: id, name: name}) if match_func(re, name)
 
       @_resetSortingREs()
@@ -198,7 +201,7 @@ define [
 
     _parseResponseData: (json_data)->
       result = {}
-      result[item.id] = item.name for item in json_data
+      result[item.name] = item.id for item in json_data
       return result
 
     _updateDB: (data)->
