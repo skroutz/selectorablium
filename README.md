@@ -44,7 +44,7 @@ Then initialize the plugin:
       app_name: 'my_app', //required, for namespacing purposes
       url: 'some_url',    //required, where the XHR will be fetched from
       query: 'q',         //required, GET param name for the XHR queries
-      name: 'shops'       //required, name of specifix instance
+      name: 'shops'       //required, name of specific instance
   })
 </script>
 ```
