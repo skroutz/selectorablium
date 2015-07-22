@@ -46,7 +46,7 @@
     "karma": "^0.12.24",
     "karma-cli": "0.0.4",
     "karma-coffee-preprocessor": "^0.2.1",
-    "karma-fixture": "^0.2.1-1",
+    "karma-fixture": "^0.2.5",
     "karma-html2js-preprocessor": "^0.1.0",
     "karma-mocha": "^0.1.9",
     "karma-mocha-reporter": "^0.3.1",
