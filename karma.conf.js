@@ -35,7 +35,7 @@ module.exports = function(config) {
     preprocessors: {
       '**/*.coffee' : ['coffee'],
       '**/*.html'   : ['html2js'],
-      '**/*.json'   : ['html2js']
+      '**/*.json'   : ['json_fixtures']
     },
 
     coffeePreprocessor: {
@@ -44,6 +44,10 @@ module.exports = function(config) {
         bare: true,
         sourceMap: false
       },
+    },
+
+    jsonFixturesPreprocessor: {
+      variableName: '__json__'
     },
 
     // test results reporter to use
