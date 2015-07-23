@@ -183,19 +183,27 @@ var __slice = [].slice;
       }
     };
 
-    StorageFreak.prototype.add = function(key, value) {
+    StorageFreak.prototype.add = function(value, text) {
       var new_data;
-      if (this._data[key]) {
+      if (this._data[text]) {
         return;
       }
       new_data = {};
-      new_data[key] = value;
+      new_data[text] = value;
       this._data = $.extend({}, this._data, new_data);
       return this._updateDB(this._data);
     };
 
-    StorageFreak.prototype.searchByKey = function(key) {
-      return this._data[key] || false;
+    StorageFreak.prototype.searchByValue = function(val) {
+      var text, value, _ref;
+      _ref = this._data;
+      for (text in _ref) {
+        value = _ref[text];
+        if (value === val) {
+          return text;
+        }
+      }
+      return false;
     };
 
 
@@ -261,8 +269,8 @@ var __slice = [].slice;
       query = this._createAccentIndependentQuery(query);
       re = this._createQueryRE(query, this.config.search_type);
       _ref = this._data;
-      for (id in _ref) {
-        name = _ref[id];
+      for (name in _ref) {
+        id = _ref[name];
         if (match_func(re, name)) {
           results.push({
             id: id,
@@ -350,7 +358,7 @@ var __slice = [].slice;
       result = {};
       for (_i = 0, _len = json_data.length; _i < _len; _i++) {
         item = json_data[_i];
-        result[item.id] = item.name;
+        result[item.name] = item.id;
       }
       return result;
     };
@@ -534,23 +542,23 @@ var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments)
       return this._insertOptionElement(this.config.default_value, this.config.default_text);
     };
 
-    Selectorablium.prototype.set = function(key, value) {
-      if (value == null) {
-        value = null;
+    Selectorablium.prototype.set = function(value, text) {
+      if (text == null) {
+        text = null;
       }
-      if (value === null) {
-        value = this.db.searchByKey(key);
-        if (value === false) {
+      if (text === null) {
+        text = this.db.searchByValue(value);
+        if (text === false) {
           return false;
         }
       }
-      this._insertOptionElement(key, value);
+      this._insertOptionElement(value, text);
       this._hide();
       return true;
     };
 
-    Selectorablium.prototype.add = function(key, value) {
-      return this.db.add(key, value);
+    Selectorablium.prototype.add = function(value, text) {
+      return this.db.add(value, text);
     };
 
     Selectorablium.prototype._createHtmlElements = function() {
@@ -769,7 +777,7 @@ var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments)
       new_keys = {};
       for (_i = 0, _len = results.length; _i < _len; _i++) {
         result = results[_i];
-        new_keys[result.id] = true;
+        new_keys[result.name] = true;
         new_item = {
           id: result.id,
           name: result.name,
@@ -777,10 +785,10 @@ var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments)
           selected: false,
           fresh: !!xhr
         };
-        if (this.indexed_structure[result.id]) {
-          new_item = $.extend(new_item, this.indexed_structure[result.id]);
+        if (this.indexed_structure[result.name]) {
+          new_item = $.extend(new_item, this.indexed_structure[result.name]);
         }
-        this.indexed_structure[result.id] = new_item;
+        this.indexed_structure[result.name] = new_item;
         this.structure.push(new_item);
       }
       _ref = this.indexed_structure;
@@ -829,7 +837,7 @@ var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments)
           if (item.selected === true) {
             class_name += ' selected';
           }
-          items_templates.push("<li><a href='#' class='" + class_name + "' data-value='" + item.id + "'>" + item.template + "</a></li>");
+          items_templates.push("<li><a href='#' class='" + class_name + "' data-value='" + item.id + "' data-text='" + item.name + "'>" + item.template + "</a></li>");
           item.fresh = false;
         }
       }
@@ -915,7 +923,7 @@ var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments)
       if (!this.selected_item) {
         return;
       }
-      ref = this.indexed_structure[this.selected_item.data('value')];
+      ref = this.indexed_structure[this.selected_item.data('text')];
       ref && (ref.selected = false);
       this.selected_item.removeClass('selected');
       return this.selected_item = null;
@@ -927,7 +935,7 @@ var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments)
       }
       this._resetSelectedItem();
       this.selected_item = $item.addClass('selected');
-      return this.indexed_structure[$item.data('value')].selected = true;
+      return this.indexed_structure[$item.data('text')].selected = true;
     };
 
     Selectorablium.prototype._getNextItem = function(direction) {
