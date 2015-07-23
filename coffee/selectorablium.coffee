@@ -99,19 +99,19 @@ define [
 
     reset: -> @_insertOptionElement @config.default_value, @config.default_text
 
-    set: (key, value = null)->
+    set: (value, text = null)->
       ##TODO:
-      # if key and value
+      # if value and text
       ## UPDATE DATABASE
-      if value is null
-        value = @db.searchByKey key
-        return false if value is false
+      if text is null
+        text = @db.searchByValue value
+        return false if text is false
 
-      @_insertOptionElement key, value
+      @_insertOptionElement value, text
       @_hide()
       return true
 
-    add: (key, value)-> @db.add(key, value)
+    add: (value, text)-> @db.add(value, text)
 
     ## PRIVATE ##
     _createHtmlElements: ->
@@ -273,7 +273,7 @@ define [
       new_keys = {}
 
       for result in results
-        new_keys[result.id] = true
+        new_keys[result.name] = true
         new_item =
           id       : result.id
           name     : result.name
@@ -281,10 +281,10 @@ define [
           selected : false
           fresh    : !!xhr
 
-        if @indexed_structure[result.id]
-          new_item = $.extend(new_item, @indexed_structure[result.id])
+        if @indexed_structure[result.name]
+          new_item = $.extend(new_item, @indexed_structure[result.name])
 
-        @indexed_structure[result.id] = new_item
+        @indexed_structure[result.name] = new_item
         @structure.push new_item
 
       # Clean up @indexed_structure
@@ -321,7 +321,7 @@ define [
           class_name += ' new' if item.fresh is true
           class_name += ' selected' if item.selected is true
 
-          items_templates.push "<li><a href='#' class='#{class_name}' data-value='#{item.id}'>#{item.template}</a></li>"
+          items_templates.push "<li><a href='#' class='#{class_name}' data-value='#{item.id}' data-text='#{item.name}'>#{item.template}</a></li>"
           item.fresh    = false
 
       items_templates.join('\n')
@@ -383,7 +383,7 @@ define [
 
     _resetSelectedItem: ->
       return unless @selected_item
-      ref = @indexed_structure[@selected_item.data('value')]
+      ref = @indexed_structure[@selected_item.data('text')]
       ref and ref.selected = false
 
       @selected_item.removeClass('selected')
@@ -395,7 +395,7 @@ define [
       @_resetSelectedItem()
 
       @selected_item = $item.addClass('selected')
-      @indexed_structure[$item.data('value')].selected = true
+      @indexed_structure[$item.data('text')].selected = true
 
     _getNextItem: (direction)->
       count = @$result_items.length
