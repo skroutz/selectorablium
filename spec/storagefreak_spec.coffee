@@ -365,21 +365,21 @@ describe 'StorageFreak', ->
       @timestamp = @instance._get @instance._timestamp_key
 
     it 'expects key as first argument and value as second', ->
-      @instance.add('lala', 'koko')
+      @instance.add('koko', 'lala')
       expect(@instance._get @instance._data_key).to.eql
         koko: 'lala'
         koko2: 'lala2'
         lala: 'koko'
 
     it 'appends data to localStorage', ->
-      @instance.add('lala', 'koko')
+      @instance.add('koko', 'lala')
       expect(@instance._get @instance._data_key).to.eql
         koko: 'lala'
         koko2: 'lala2'
         lala: 'koko'
 
     it 'appends data to @_data', ->
-      @instance.add('lala', 'koko')
+      @instance.add('koko', 'lala')
       expect(@instance._data).to.eql
         koko: 'lala'
         koko2: 'lala2'
@@ -390,11 +390,11 @@ describe 'StorageFreak', ->
         expect(true).to.be.true
         done()
 
-      @instance.add('lala', 'koko')
+      @instance.add('koko', 'lala')
 
     context 'when key exists', ->
       beforeEach ->
-        @instance.add('koko', 'different_value')
+        @instance.add('different_value', 'koko')
 
       it 'does not update key with new value in localStorage', ->
         expect(@instance._get @instance._data_key).to.eql
@@ -408,18 +408,18 @@ describe 'StorageFreak', ->
 
 
 
-  describe 'searchByKey', ->
+  describe 'searchByValue', ->
     beforeEach ->
       @instance = @StorageFreak(@init_options)
       @instance._data = {
         koko: 'lala'
       }
 
-    it 'returns value for searched key', ->
-      expect(@instance.searchByKey('koko')).to.equal('lala')
+    it 'returns value for searched value', ->
+      expect(@instance.searchByValue('lala')).to.equal('koko')
 
     it 'returns false if nothing is found', ->
-      expect(@instance.searchByKey('lala')).to.equal(false)
+      expect(@instance.searchByValue('koko')).to.equal(false)
 
     it 'does not make an XHR', ->
       expect(@requests).to.have.length(0)
@@ -436,7 +436,7 @@ describe 'StorageFreak', ->
 
     it 'matches only infix data by default', (done)->
       @instance._data = {
-        add: 'addasjjjj'
+        addasjjjj: 'add'
         asd: 'asd'
         as: 'as'
       }
@@ -456,7 +456,7 @@ describe 'StorageFreak', ->
 
       it 'matches prefix', (done)->
         @instance._data = {
-          add: 'addas'
+          addas: 'add'
           asd: 'asd'
           as: 'as'
         }
@@ -486,9 +486,9 @@ describe 'StorageFreak', ->
 
     it 'matches accented characters ignoring their accent', (done)->
       @instance._data = {
-        as: 'λολο'
-        asd: 'λόλο'
-        add: 'λαλα'
+        λολο: 'as'
+        λόλο: 'asd'
+        λαλα: 'add'
       }
 
       @instance.on 'dbsearch_results', (data, query)->
@@ -529,13 +529,13 @@ describe 'StorageFreak', ->
 
     it 'sorts results by absolute matches, token matches, prefix matches', (done)->
       @instance._data =
-        k1: 'skyram'
-        k2: 'abraram'
-        k3: 'mr ram'
-        k4: 'babaoram'
-        k5: 'rambo'
-        k6: 'ram mania'
-        k7: 'ram'
+        skyram: 'k1'
+        abraram: 'k2'
+        'mr ram': 'k3'
+        babaoram: 'k4'
+        rambo: 'k5'
+        'ram mania': 'k6'
+        ram: 'k7'
 
       @instance.config.maxResultsNum = 7
 
