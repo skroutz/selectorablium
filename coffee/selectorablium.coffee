@@ -314,17 +314,24 @@ define [
         text = 'No results found'
         ## TODO: if @state isnt 'XHR'
         # text = 'Loading...' if query.length >= @config.minCharsForRemoteSearch
-        items_templates.push "<li><p class='empty-message'>#{text}</p></li>"
+        $li = $('<li>').append($("<p>", class: 'empty-message').text(text)).get(0)
+        items_templates.push $li
       else
         for item in @structure
           class_name = 'item'
           class_name += ' new' if item.fresh is true
           class_name += ' selected' if item.selected is true
 
-          items_templates.push "<li><a href='#' class='#{class_name}' data-value='#{item.id}' data-text='#{item.name}'>#{item.template}</a></li>"
+          $li = $('<li>').append($("<a>",
+            'href': '#',
+            'class': class_name,
+            'data-value': item.id,
+            'data-text': item.name).html(item.template)).get(0)
+
+          items_templates.push $li
           item.fresh    = false
 
-      items_templates.join('\n')
+      items_templates
 
     ## HELPERS ##
     _createAccentIndependentRE: (query)->
