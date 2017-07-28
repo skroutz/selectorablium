@@ -2,7 +2,7 @@
 
 Make huge `<select>` elements lighter by caching out all the options to localStorage, and easier to browse with options filtering.
 
-##Features:
+## Features:
 - Loads data as JSON via an XHR call and caches it inside localStorage
 - Makes extra XHR calls if queries are over a threshhold value in length
 - Filters options via an input element
@@ -14,7 +14,7 @@ Make huge `<select>` elements lighter by caching out all the options to localSto
 - Fast
 
 
-##Installation
+## Installation
 ```bash
 $ bower install selectorablium
 ```
@@ -120,7 +120,7 @@ The instance object of each initialized `<select>` element can be referenced thr
 var instance = $('.selectorablium').first().data('Selectorablium')
 ```
 
-#####.then(success_callback, error_callback)
+##### .then(success_callback, error_callback)
 
 A `then` method is exposed so that the instance can be seen as a [thenable](http://promises-aplus.github.io/promises-spec/).
 
@@ -131,22 +131,22 @@ The `success_callback` is executed after:
 
 On error, the `error_callback` is executed.
 
-#####.add(value, text)
+##### .add(value, text)
 
 Persist to localStorage the passed data. Subsequent searches will find and show that data
 If value is already present in the localStorage, then the text is not updated.
 
-#####.set(value[, text])
+##### .set(value[, text])
 
 Manually create an `<option>` element with the params passed for `value` and `text`.
 
 If only the `value` param is passed, the `text` is searched in the localStorage.
 
-#####.reset()
+##### .reset()
 
 Reset the `<select>`'s element option to the default value and text.
 
-#####.cleanup()
+##### .cleanup()
 
 Resets the `<select>` element the the previous state. It completely removes the plugins HTML elements, its internal event handlers and stops any XHR activity.
 
