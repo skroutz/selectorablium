@@ -1,5 +1,5 @@
 {
-  "name": "selectorablium",
+  "name": "@skroutz/selectorablium",
   "version": "2.0.0-alpha.3",
   "description": "A jQuery plugin that enhances <select> elements with localstorage and filtering",
   "main": "dist/selectorablium.js",
