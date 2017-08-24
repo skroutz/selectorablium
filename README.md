@@ -16,8 +16,15 @@ Make huge `<select>` elements lighter by caching out all the options to localSto
 
 ## Installation
 ```bash
+$ npm install @skroutz/selectorablium
+```
+
+or
+
+```bash
 $ bower install selectorablium
 ```
+> Warning: Bower is deprecated!
 
 ## Dependencies
 - jQuery
