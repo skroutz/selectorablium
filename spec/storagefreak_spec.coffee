@@ -231,30 +231,27 @@ describe 'StorageFreak', ->
           expect(result.state()).to.equal('pending')
 
       context 'after the XHR resolves', ->
-        beforeEach ->
+        beforeEach (done)->
           @spy_end = sinon.spy()
           @instance.on 'dbcreate_end', @spy_end
-
           @result = @instance.init()
-          return
+          @respondJSON(@shops_json)
+          # Ensure that XHR callbacks (which resolve @result) have finished
+          # so that expectations have been fullfilled
+          @result.then -> done()
 
         it 'adds data to storage', ->
-          @respondJSON(@shops_json)
-
           expect(@instance._get(@instance._data_key))
             .to.not.equal(false)
 
         it 'adds data_timestamp to storage', ->
-          @respondJSON(@shops_json)
           expect(@instance._get(@instance._timestamp_key))
             .to.not.equal(false)
 
         it 'triggers a "dbcreate_end" event', ->
-          @respondJSON(@shops_json)
           expect(@spy_end).to.be.calledOnce
 
         it 'resolves the returned deferred', (done)->
-          @respondJSON(@shops_json)
           @result.then ->
             expect(true).to.be.true
             done()
@@ -304,30 +301,28 @@ describe 'StorageFreak', ->
           expect(result.state()).to.equal('pending')
 
       context 'after the XHR resolves', ->
-        beforeEach ->
+        beforeEach (done)->
           @spy_end = sinon.spy()
           @instance.on 'dbcreate_end', @spy_end
 
           @result = @instance.init()
-          return
+          @respondJSON(@shops_json)
+          # Ensure that XHR callbacks (which resolve @result) have finished
+          # so that expectations have been fullfilled
+          @result.then -> done()
 
         it 'adds old data in storage with new', ->
-          @respondJSON(@shops_json)
-
           expect(@instance._get(@instance._data_key))
             .to.not.eql(@old_data)
 
         it 'replaces old data_timestamp in storage with new', ->
-          @respondJSON(@shops_json)
           expect(@instance._get(@instance._timestamp_key))
             .to.not.eql(@timestamp)
 
         it 'triggers a "dbcreate_end" event', ->
-          @respondJSON(@shops_json)
           expect(@spy_end).to.be.calledOnce
 
         it 'resolves the returned deferred', (done)->
-          @respondJSON(@shops_json)
           @result.then ->
             expect(true).to.be.true
             done()
@@ -640,6 +635,7 @@ describe 'StorageFreak', ->
           @instance.search(@query)
           @clock.tick(@instance.config.XHRTimeout)
           @respondJSON(@shops_json)
+          done()
 
         it 'updates storage', (done)->
           @instance._set @instance._data_key, @makers_obj
@@ -653,6 +649,7 @@ describe 'StorageFreak', ->
           @instance.search(@query)
           @clock.tick(@instance.config.XHRTimeout)
           @respondJSON(@makers_json)
+          done()
 
         it 'updates @_data', (done)->
           data = {koko:'lala'}
@@ -666,6 +663,7 @@ describe 'StorageFreak', ->
           @instance.search(@query)
           @clock.tick(@instance.config.XHRTimeout)
           @respondJSON(@makers_json)
+          done()
 
         it 'triggers "dbsearch_results" event and passes results from updated data as first arg', (done)->
           @instance.on 'dbsearch_results', (results, query, xhr = false)=>
@@ -676,6 +674,7 @@ describe 'StorageFreak', ->
           @instance.search(@query)
           @clock.tick(@instance.config.XHRTimeout)
           @respondJSON(@makers_json)
+          done()
 
         it 'triggers "dbsearch_results" event and passes original query as second arg', (done)->
           @instance.on 'dbsearch_results', (results, query, xhr = false)=>
@@ -686,6 +685,7 @@ describe 'StorageFreak', ->
           @instance.search(@query)
           @clock.tick(@instance.config.XHRTimeout)
           @respondJSON(@makers_json)
+          done()
 
         it 'triggers "dbsearch_results" event and passes "xhr" as third arg', (done)->
           @instance.on 'dbsearch_results', (results, query, xhr = false)=>
@@ -696,6 +696,7 @@ describe 'StorageFreak', ->
           @instance.search(@query)
           @clock.tick(@instance.config.XHRTimeout)
           @respondJSON(@makers_json)
+          done()
 
         it 'sorts results', (done)->
           @instance.on 'dbsearch_results', (results, query, xhr = false)=>
@@ -706,6 +707,7 @@ describe 'StorageFreak', ->
           @instance.search(@query)
           @clock.tick(@instance.config.XHRTimeout)
           @respondJSON(@makers_json)
+          done()
 
         it 'slices results', (done)->
           @instance.on 'dbsearch_results', (results, query, xhr = false)=>
@@ -716,6 +718,7 @@ describe 'StorageFreak', ->
           @instance.search(@query)
           @clock.tick(@instance.config.XHRTimeout)
           @respondJSON(@makers_json)
+          done()
 
     context 'when a new remote request starts before the previous finishes', ->
       beforeEach ->
