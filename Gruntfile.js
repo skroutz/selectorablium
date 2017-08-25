@@ -204,6 +204,7 @@ module.exports = function(grunt) {
             'git commit -m "Create Dist files"',
             'git push origin dist -f',
             'grunt bump:' + type,
+            'npm publish --access public',
             'git checkout master',
             'git cherry-pick origin/dist',
             'git push origin master'
