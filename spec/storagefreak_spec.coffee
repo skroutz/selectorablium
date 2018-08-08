@@ -28,8 +28,11 @@ describe 'StorageFreak', ->
   @timeout(0)
 
   before (done)->
-    @respondJSON = (json_data)->
-      @requests[0].respond 200, { "Content-Type": "application/json" }, json_data
+    @respondJSON = (json_data, headers)->
+      headers ||= {}
+      headers = $.extend { "Content-Type": "application/json" }, headers
+
+      @requests[0].respond 200, headers, json_data
 
     [@shops_obj, @makers_obj] = fixture.load('shops.json', 'makers.json')
     @makers_json = JSON.stringify @makers_obj
@@ -91,6 +94,10 @@ describe 'StorageFreak', ->
     it 'creates @_timestamp_key', ->
       @instance = @StorageFreak(@init_options)
       expect(@instance._timestamp_key).to.equal('a_select_timestamp')
+
+    it 'creates @_last_modified_key', ->
+      @instance = @StorageFreak(@init_options)
+      expect(@instance._last_modified_key).to.equal('a_select_last_modified')
 
     it 'creates @_data', ->
       @instance = @StorageFreak(@init_options)
@@ -256,7 +263,7 @@ describe 'StorageFreak', ->
             expect(true).to.be.true
             done()
 
-    context 'when storage has data that need refreshing', ->
+    context 'when storage has data that have expired', ->
       beforeEach ->
         @timestamp = new Date().getTime()
         @timestamp = @timestamp - (2 * @instance.config.localCacheTimeout)
@@ -346,6 +353,133 @@ describe 'StorageFreak', ->
           expect(true).to.be.true
           done()
 
+    context 'when storage has data and @config.cache_revalidate option is enabled', ->
+      beforeEach ->
+        @instance = @StorageFreak($.extend {}, @init_options, { cache_revalidate: true })
+
+        @timestamp = new Date().getTime()
+        @instance._updateDB(@shops_obj)
+        @instance._set @instance._timestamp_key, @timestamp
+
+        @old_data = @instance._get @instance._data_key
+
+      it 'returns a Deferred object', ->
+        result = @instance.init()
+        expect(result).to.respondTo('then')
+
+      it 'makes a GET JSON XHR', ->
+        @instance.init()
+
+        expect(@requests).to.have.length(1)
+
+      context 'when storage has a last_modified timestamp', ->
+        beforeEach ->
+          @instance._set @instance._last_modified_key, @timestamp
+
+        it 'includes the If-Modified-Since header to the GET JSON XHR', ->
+          @instance.init()
+
+          expect(@requests[0].requestHeaders['If-Modified-Since'])
+            .to.equal(new Date(@timestamp).toUTCString())
+
+      context 'before the XHR resolves', ->
+        it 'triggers a "dbcreate_start" event', ->
+          spy = sinon.spy()
+          @instance.on 'dbcreate_start', spy
+          @instance.init()
+          expect(spy).to.be.calledOnce
+
+        it 'does not add new data to storage', ->
+          @instance.init()
+          expect(@instance._get(@instance._data_key))
+            .to.eql(@shops_obj)
+
+        it 'does not add data_timestamp to storage', ->
+          @instance.init()
+          expect(@instance._get(@instance._timestamp_key))
+            .to.eql(@timestamp)
+
+        it 'does not trigger a "dbcreate_end" event', ->
+          spy = sinon.spy()
+          @instance.on 'dbcreate_end', spy
+          @instance.init()
+          expect(spy).to.not.be.called
+
+        it 'does not resolve the returned deferred', ->
+          result = @instance.init()
+          expect(result.state()).to.equal('pending')
+
+      context 'after the XHR resolves', ->
+        context 'when remote responds with data', ->
+          beforeEach (done)->
+            @spy_end = sinon.spy()
+            @instance.on 'dbcreate_end', @spy_end
+
+            @result = @instance.init()
+
+            @shops_updated_json = JSON.stringify(
+              JSON.parse(@shops_json).concat([{ id: 100, name: "Ofarmakopoiosmou" }]))
+
+            # Last-Modified set to 1 hour later than local timestamp
+            # Milliseconds are deliberately set to 0 as httpdates do not contain them
+            last_modified_date = new Date(@timestamp + 60 * 60 * 1000)
+            last_modified_date.setMilliseconds(0)
+            @last_modified = last_modified_date.getTime()
+
+            @respondJSON(@shops_updated_json,
+              { 'Last-Modified': new Date(@last_modified).toUTCString() })
+
+            @result.then -> done()
+
+          it 'adds old data in storage with new', ->
+            expect(@instance._get(@instance._data_key))
+              .to.not.eql(@old_data)
+
+          it 'includes updated data in storage', ->
+            expect(@instance._get(@instance._data_key))
+              .to.include({ Ofarmakopoiosmou: 100 })
+
+          it 'replaces old data_timestamp in storage with new', ->
+            expect(@instance._get(@instance._timestamp_key))
+              .to.not.eql(@timestamp)
+
+          it 'updates last_modified timestamp in storage', ->
+            expect(@instance._get(@instance._last_modified_key))
+              .to.eql(@last_modified)
+
+          it 'triggers a "dbcreate_end" event', ->
+            expect(@spy_end).to.be.calledOnce
+
+          it 'resolves the returned deferred', (done)->
+            @result.then ->
+              expect(true).to.be.true
+              done()
+
+        context 'when remote responds with Not Modified', ->
+          beforeEach (done)->
+            @spy_end = sinon.spy()
+            @instance.on 'dbcreate_end', @spy_end
+
+            @result = @instance.init()
+            @requests[0].respond 304
+
+            @result.then -> done()
+
+          it 'retrieves data from storage', ->
+            expect(@instance._data).to.eql(@shops_obj)
+
+          it 'does not update data timestamp in storage', ->
+            expect(@instance._get(@instance._timestamp_key))
+              .to.eql(@timestamp)
+
+          it 'triggers a "dbcreate_end" event', ->
+            expect(@spy_end).to.be.calledOnce
+
+          it 'resolves the returned deferred', (done)->
+            @result.then ->
+              expect(true).to.be.true
+              done()
+
   describe 'add', ->
     beforeEach ->
       @instance = @StorageFreak(@init_options)
@@ -400,8 +534,6 @@ describe 'StorageFreak', ->
         expect(@instance._data).to.eql
           koko: 'lala'
           koko2: 'lala2'
-
-
 
   describe 'searchByValue', ->
     beforeEach ->
@@ -636,6 +768,22 @@ describe 'StorageFreak', ->
           @clock.tick(@instance.config.XHRTimeout)
           @respondJSON(@shops_json)
           done()
+
+        context 'when storage has a last_modified timestamp', ->
+          beforeEach ->
+            last_modified = new Date().getTime() - 60 * 60 * 1000 # 1 hour before
+            @instance._set @instance._last_modified_key, last_modified
+
+          it 'does not add If-Modified-Since header', (done)->
+            @instance.on 'dbsearch_results', (results, query, xhr = false)=>
+              if xhr
+                expect(@requests[0].requestHeaders).to.not.have.property('If-Modified-Since')
+                done()
+
+            @instance.search(@query)
+            @clock.tick(@instance.config.XHRTimeout)
+            @respondJSON(@shops_json)
+            done()
 
         it 'updates storage', (done)->
           @instance._set @instance._data_key, @makers_obj
