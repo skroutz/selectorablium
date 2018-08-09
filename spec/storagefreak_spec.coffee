@@ -734,6 +734,13 @@ describe 'StorageFreak', ->
           @instance.search(@query)
 
       context 'after timeout', ->
+        eventually = (done, expectation) ->
+          try
+            expectation()
+            done()
+          catch e
+            done(e)
+
         beforeEach ->
           @expected_makers_data = [
             {
@@ -761,13 +768,12 @@ describe 'StorageFreak', ->
         it 'makes an XHR', (done)->
           @instance.on 'dbsearch_results', (results, query, xhr = false)=>
             if xhr
-              expect(@requests).to.have.length(1)
-              done()
+              eventually done, => expect(@requests).to.have.length(1)
 
           @instance.search(@query)
           @clock.tick(@instance.config.XHRTimeout)
+          @clock.restore()
           @respondJSON(@shops_json)
-          done()
 
         context 'when storage has a last_modified timestamp', ->
           beforeEach ->
@@ -777,13 +783,13 @@ describe 'StorageFreak', ->
           it 'does not add If-Modified-Since header', (done)->
             @instance.on 'dbsearch_results', (results, query, xhr = false)=>
               if xhr
-                expect(@requests[0].requestHeaders).to.not.have.property('If-Modified-Since')
-                done()
+                eventually done, =>
+                  expect(@requests[0].requestHeaders).to.not.have.property('If-Modified-Since')
 
             @instance.search(@query)
             @clock.tick(@instance.config.XHRTimeout)
+            @clock.restore()
             @respondJSON(@shops_json)
-            done()
 
         it 'updates storage', (done)->
           @instance._set @instance._data_key, @makers_obj
@@ -791,13 +797,13 @@ describe 'StorageFreak', ->
 
           @instance.on 'dbsearch_results', (results, query, xhr = false)=>
             if xhr
-              expect(@instance._get(@instance._data_key)).to.not.eql(old_data)
-              done()
+              eventually done, =>
+                expect(@instance._get(@instance._data_key)).to.not.eql(old_data)
 
           @instance.search(@query)
           @clock.tick(@instance.config.XHRTimeout)
+          @clock.restore()
           @respondJSON(@makers_json)
-          done()
 
         it 'updates @_data', (done)->
           data = {koko:'lala'}
@@ -805,68 +811,63 @@ describe 'StorageFreak', ->
 
           @instance.on 'dbsearch_results', (results, query, xhr = false)=>
             if xhr
-              expect(@instance._data).to.not.eql(data)
-              done()
+              eventually done, => expect(@instance._data).to.not.eql(data)
 
           @instance.search(@query)
           @clock.tick(@instance.config.XHRTimeout)
+          @clock.restore()
           @respondJSON(@makers_json)
-          done()
 
         it 'triggers "dbsearch_results" event and passes results from updated data as first arg', (done)->
           @instance.on 'dbsearch_results', (results, query, xhr = false)=>
             if xhr
-              expect(results).to.deep.eql @expected_makers_data
-              done()
+              eventually done, => expect(results).to.deep.eql @expected_makers_data
 
           @instance.search(@query)
           @clock.tick(@instance.config.XHRTimeout)
+          @clock.restore()
           @respondJSON(@makers_json)
-          done()
 
         it 'triggers "dbsearch_results" event and passes original query as second arg', (done)->
           @instance.on 'dbsearch_results', (results, query, xhr = false)=>
             if xhr
-              expect(query).to.equal(@query)
-              done()
+              eventually done, => expect(query).to.equal(@query)
 
           @instance.search(@query)
           @clock.tick(@instance.config.XHRTimeout)
+          @clock.restore()
           @respondJSON(@makers_json)
-          done()
 
         it 'triggers "dbsearch_results" event and passes "xhr" as third arg', (done)->
           @instance.on 'dbsearch_results', (results, query, xhr = false)=>
             if xhr
-              expect(xhr).to.equal('xhr')
-              done()
+              eventually done, => expect(xhr).to.equal('xhr')
 
           @instance.search(@query)
           @clock.tick(@instance.config.XHRTimeout)
+          @clock.restore()
           @respondJSON(@makers_json)
-          done()
 
         it 'sorts results', (done)->
           @instance.on 'dbsearch_results', (results, query, xhr = false)=>
             if xhr
-              expect(results).to.deep.eql @expected_makers_data
-              done()
+              eventually done, => expect(results).to.deep.eql @expected_makers_data
 
           @instance.search(@query)
           @clock.tick(@instance.config.XHRTimeout)
+          @clock.restore()
           @respondJSON(@makers_json)
-          done()
 
         it 'slices results', (done)->
           @instance.on 'dbsearch_results', (results, query, xhr = false)=>
             if xhr
-              expect(results).to.be.an('array').with.length(@instance.config.maxResultsNum)
-              done()
+              eventually done, =>
+                expect(results).to.be.an('array').with.length(@instance.config.maxResultsNum)
 
           @instance.search(@query)
           @clock.tick(@instance.config.XHRTimeout)
+          @clock.restore()
           @respondJSON(@makers_json)
-          done()
 
     context 'when a new remote request starts before the previous finishes', ->
       beforeEach ->
