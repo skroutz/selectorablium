@@ -63,6 +63,7 @@ define [
       @_db_prefix = "#{@config.namespace}.#{@config.app_name}"
       @_data_key      = "#{@config.name}_data"
       @_timestamp_key = "#{@config.name}_timestamp"
+      @_last_modified_key = "#{@config.name}_last_modified"
 
       @_data = {}
       @_events = {}
@@ -78,7 +79,7 @@ define [
         context: context
 
     init: ->
-      if @_isInvalidData()
+      if @config.cache_revalidate or @_isInvalidData()
         return @_getRemoteData '', {event_name: 'dbcreate'}
       else
         @_data = @_get @_data_key
@@ -162,18 +163,41 @@ define [
         query_param = options.query or @config.query
         params[query_param] = query
 
-      @XHR_dfd = $.getJSON(options.url or @config.url, params)
-      @XHR_dfd.then (json_data)=>
-        @_getRemoteSuccess(json_data, dfd, options)
+      headers = {}
+      last_modified = @_get @_last_modified_key
+      if !query and last_modified
+        headers['If-Modified-Since'] = new Date(last_modified).toUTCString()
+
+      @XHR_dfd = $.ajax({
+        dataType: "json",
+        url: options.url or @config.url,
+        headers: headers,
+        data: params
+      })
+
+      @XHR_dfd.then (json_data, textStatus, xhr)=>
+        if xhr.status == 304
+          @_getRemoteNotModified(xhr, dfd, options)
+        else
+          @_getRemoteSuccess(json_data, xhr, dfd, options)
       , (xhr)=>
         @_getRemoteError(xhr, dfd, options)
 
       dfd
 
-    _getRemoteSuccess: (json_data, dfd, options)->
+    _getRemoteSuccess: (json_data, xhr, dfd, options)->
       @_data = $.extend {}, @_data, @_parseResponseData(json_data)
-      @_updateDB(@_data)
 
+      if last_modified = xhr.getResponseHeader('Last-Modified')
+        last_modified_ts = new Date(last_modified).getTime()
+
+      @_updateDB(@_data, last_modified_ts)
+      @_trigger "#{options.event_name or 'dbremote_search'}_end"
+
+      dfd.resolve()
+
+    _getRemoteNotModified: (xhr, dfd, options)->
+      @_data = @_get @_data_key
       @_trigger "#{options.event_name or 'dbremote_search'}_end"
 
       dfd.resolve()
@@ -204,9 +228,13 @@ define [
       result[item.name] = item.id for item in json_data
       return result
 
-    _updateDB: (data)->
+    _updateDB: (data, last_modified_ts)->
       @_set @_data_key, data
       @_set @_timestamp_key, new Date().getTime()
+
+      if last_modified_ts
+        @_set @_last_modified_key, last_modified_ts
+
       @_trigger 'dbupdated'
 
     _createAccentIndependentQuery: (query)->
