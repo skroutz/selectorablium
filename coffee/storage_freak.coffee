@@ -63,11 +63,14 @@ define [
       @_db_prefix = "#{@config.namespace}.#{@config.app_name}"
       @_data_key      = "#{@config.name}_data"
       @_timestamp_key = "#{@config.name}_timestamp"
+      @_cache_control_key = "#{@config.name}_cache_control_timestamp"
 
       @_data = {}
       @_events = {}
       @timeout = null
       @XHR_dfd = null
+
+      @_last_modified_ts = null
 
       @_storage = @_getStorage()
 
@@ -78,7 +81,22 @@ define [
         context: context
 
     init: ->
-      if @_isInvalidData()
+      invalid_data = @_isInvalidData()
+
+      if typeof invalid_data.then is 'function'
+        invalid_data.then =>
+          cache_control_ts = @_get @_cache_control_key
+
+          invalid_data = cache_control_ts is false or
+                         @_last_modified_ts is null or
+                         @_last_modified_ts > cache_control_ts
+
+          @_maybeGetRemoteData(invalid_data)
+      else
+        @_maybeGetRemoteData(invalid_data)
+
+    _maybeGetRemoteData: (invalid_data)->
+      if invalid_data
         return @_getRemoteData '', {event_name: 'dbcreate'}
       else
         @_data = @_get @_data_key
@@ -195,9 +213,23 @@ define [
 
     _isInvalidData: ->
       ts    = new Date().getTime()
+
       db_ts = @_get @_timestamp_key
       db_ts = parseInt(db_ts, 10) if db_ts
-      db_ts is false or (ts - db_ts) > @config.localCacheTimeout
+      if db_ts is false or (ts - db_ts) > @config.localCacheTimeout
+        return true
+
+      if @config.cache_control_url
+        dfd = new $.Deferred()
+
+        cache_dfd = $.getJSON(@config.cache_control_url)
+        cache_dfd.then (last_modified_ts)=>
+          @_last_modified_ts = last_modified_ts
+          dfd.resolve()
+
+        return dfd
+
+      return false
 
     _parseResponseData: (json_data)->
       result = {}
@@ -207,6 +239,10 @@ define [
     _updateDB: (data)->
       @_set @_data_key, data
       @_set @_timestamp_key, new Date().getTime()
+
+      if @_last_modified_ts
+        @_set @_cache_control_key, @_last_modified_ts
+
       @_trigger 'dbupdated'
 
     _createAccentIndependentQuery: (query)->
