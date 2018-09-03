@@ -108,6 +108,7 @@ define [
         return false if text is false
 
       @_insertOptionElement value, text
+      @$el.trigger("change")
       @_hide()
       return true
 
