@@ -143,6 +143,7 @@ define [
       sort_func  = options.sort_func or @config.sort_func
       search_type = options.search_type or @config.search_type
 
+      query = @_regexEscape(query)
       query = @_createAccentIndependentQuery(query)
 
       re = @_createQueryRE(query, @config.search_type)
@@ -259,6 +260,9 @@ define [
 
     _resetSortingREs: ->
       @sort_criteria_res = null
+
+    _regexEscape: (string)->
+      string.replace(/[-[\]{}()*+!<=:?.\/\\^$|#\s,]/g, '\\$&')
 
     ## REFACTOR THOSE
     ## MAYBE REMOVE THOSE??

@@ -297,6 +297,7 @@ define [
       return @structure
 
     _highlightResults: (query) ->
+      query = @_regexEscape(query)
       re = @_createAccentIndependentRE(query)
 
       for item in @structure
@@ -342,6 +343,9 @@ define [
 
       re = null
       return new RegExp "(#{query})", 'ig'
+
+    _regexEscape: (string)->
+      string.replace(/[-[\]{}()*+!<=:?.\/\\^$|#\s,]/g, '\\$&')
 
     _addHandler: ($element, on_args...)->
       $element.on.apply $element, on_args
