@@ -40,9 +40,9 @@
     "grunt-contrib-sass": "^0.8.1",
     "grunt-contrib-uglify": "^0.6.0",
     "grunt-contrib-watch": "^0.6.1",
-    "grunt-shell": "^1.1.1",
-    "load-grunt-tasks": "^0.6.0",
     "grunt-karma": "^0.12.2",
+    "grunt-shell": "^1.1.1",
+    "jquery": "*",
     "karma": "^0.13.0",
     "karma-cli": "0.0.4",
     "karma-coffee-preprocessor": "^0.2.1",
@@ -54,6 +54,7 @@
     "karma-phantomjs-launcher": "^1.0.2",
     "karma-requirejs": "^0.2.2",
     "karma-sinon-chai": "^0.2.0",
+    "load-grunt-tasks": "^0.6.0",
     "mocha": "^1.21.5"
   }
 }
