@@ -255,7 +255,6 @@ module.exports = function(grunt) {
   ]);
 
   grunt.registerTask('test', [
-    'bower:install',
     'build_css',
     'karma:single'
   ]);
