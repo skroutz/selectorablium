@@ -97,7 +97,9 @@ define [
 
     then: (success, fail)-> @data_ready_dfd.then(success, fail)
 
-    reset: -> @_insertOptionElement @config.default_value, @config.default_text
+    reset: ->
+      @_insertOptionElement @config.default_value, @config.default_text
+      @$el.trigger('change')
 
     set: (value, text = null)->
       ##TODO:
@@ -108,7 +110,7 @@ define [
         return false if text is false
 
       @_insertOptionElement value, text
-      @$el.trigger("change")
+      @$el.trigger('change')
       @_hide()
       return true
 
