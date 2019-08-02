@@ -97,7 +97,9 @@ define [
 
     then: (success, fail)-> @data_ready_dfd.then(success, fail)
 
-    reset: -> @_insertOptionElement @config.default_value, @config.default_text
+    reset: ->
+      @_insertOptionElement @config.default_value, @config.default_text
+      @$el.trigger('change')
 
     set: (value, text = null)->
       ##TODO:
@@ -108,7 +110,7 @@ define [
         return false if text is false
 
       @_insertOptionElement value, text
-      @$el.trigger("change")
+      @$el.trigger('change')
       @_hide()
       return true
 
@@ -297,6 +299,7 @@ define [
       return @structure
 
     _highlightResults: (query) ->
+      query = @_regexEscape(query)
       re = @_createAccentIndependentRE(query)
 
       for item in @structure
@@ -342,6 +345,9 @@ define [
 
       re = null
       return new RegExp "(#{query})", 'ig'
+
+    _regexEscape: (string)->
+      string.replace(/[-[\]{}()*+!<=:?.\/\\^$|#\s,]/g, '\\$&')
 
     _addHandler: ($element, on_args...)->
       $element.on.apply $element, on_args

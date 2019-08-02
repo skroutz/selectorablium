@@ -549,6 +549,26 @@ describe 'Selectorablium', ->
           $selected_el = @instance.$results_list.find('.selected')
           expect(@instance.$results_list.find('.item').index($selected_el)).to.equal(2)
 
+      context 'when query contains special characters', ->
+        beforeEach ->
+          @query = 'pc++'
+          @instance.query = @query
+
+          @data = [
+            {
+              id: 7
+              name: 'pc++'
+            }
+          ]
+
+        it 'creates html elements for results', ->
+          @instance._onDBSearchResults(@data, @query)
+          expect(@instance.$result_items).to.have.length(1)
+
+        it 'highlights query in each element\'s text', ->
+          @instance._onDBSearchResults(@data, @query)
+          expect(@instance.$result_items.first().html()).to.equal('<span class="highlight">pc++</span>')
+
   describe 'add', ->
     beforeEach ->
       @storage_add_spy = sinon.spy @storage_mock::,  'add'

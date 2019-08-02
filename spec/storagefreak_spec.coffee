@@ -626,6 +626,19 @@ describe 'StorageFreak', ->
 
       @instance.search('λολο')
 
+    it 'matches special regex characters', (done)->
+      @instance._data = {
+        'pc++': 'special'
+      }
+
+      @instance.on 'dbsearch_results', (data)->
+        expect(data).to.deep.equal [
+          { id: 'special', name: 'pc++' }
+        ]
+        done()
+
+      @instance.search('pc++')
+
     it 'triggers "dbsearch_results" event and passes results', (done)->
       @instance._data = {
         as: 'as'
